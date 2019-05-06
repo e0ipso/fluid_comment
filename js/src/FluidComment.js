@@ -26,7 +26,7 @@ class FluidComment extends React.Component {
       article: [
         'comment',
         'js-comment',
-        `comment--${published}`,
+        !published && `comment--unpublished`,
         // 'by-anonymous'
         // 'by-' ~ commented_entity.getEntityTypeId() ~ '-author'
         'clearfix'
