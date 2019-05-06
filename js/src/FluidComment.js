@@ -1,22 +1,82 @@
 'use strict';
 
 import React from 'react';
+import FluidCommentLink from './FluidCommentLink'
 import { getDeepProp, getResponseDocument } from './functions.js';
+
+function getLinkTitles(key) {
+  const titles = {
+    'update': 'Edit',
+    'delete': 'Delete',
+    'publish': 'Approve',
+    'unpublish': 'Unpublish'
+  };
+
+  return titles[key];
+}
+function getLinkOptions(action) {
+  const methods = {
+    'update': 'PATCH',
+    'delete': 'DELETE'
+  };
+
+  return { method: methods[action] }
+}
+
+function processLink({ title, href, method, data = {} }) {
+  return {
+    title: getLinkTitles(title),
+    options: getLinkOptions(method),
+    className: `comment-${title.toLowerCase()}`,
+    href,
+    data
+  }
+}
+function processLinks(links) {
+  let processed = [];
+
+  Object.keys(links).forEach(key => {
+
+    let rel = [];
+    let data = {};
+    let title = '';
+    const href = links[key].href;
+
+    ['update', 'delete'].forEach(method => {
+      if (key === 'self') {
+        title = method;
+        rel = getDeepProp(links[key], 'meta.linkRel');
+      }
+      else {
+        const params = getDeepProp(links[key], 'meta.linkParams');
+        rel = params.rel;
+        data = params.data;
+        title = key;
+      }
+
+      if (rel.find(value => value.match(new RegExp(`${method}$`)))) {
+        processed.push(processLink({ title, href, method, data }));
+      }
+    });
+  });
+
+  return processed;
+}
 
 class FluidComment extends React.Component {
 
   constructor(props) {
     super(props);
-    this.deleteComment = this.deleteComment.bind(this);
   }
 
   render() {
-    const comment = this.props.comment;
+    const { comment } = this.props;
+
     const subject = getDeepProp(comment, 'attributes.subject');
     const body = getDeepProp(comment, 'attributes.comment_body.processed');
     const published = getDeepProp(comment, 'attributes.status');
-    const selfLink = getDeepProp(comment, 'links.self');
-    const deletable = selfLink.hasOwnProperty('rel') && selfLink['rel'].includes('delete');
+    const links = processLinks(comment.links);
+
     const author = {
       name: getDeepProp(comment, 'user.attributes.name'),
       image: getDeepProp(comment, 'user.picture.attributes.uri.url')
@@ -58,23 +118,32 @@ class FluidComment extends React.Component {
               className={classes.content.join(' ')}
               dangerouslySetInnerHTML={{__html: body}}>
             </div>
+            {links && <ul className="links inline">
+              {links.map(link => (
+                <li className={link.className}>
+                  <FluidCommentLink link={link} handleClick={(e) => this.commentAction(e, link)} />
+                </li>
+              ))}
+            </ul>}
+
           </div>
-          {deletable && <ul className="links inline">
-            <li className="comment-delete">
-              <a href="_blank" onClick={this.deleteComment}>Delete</a>
-            </li>
-          </ul>}
         </article>
     );
   }
 
-  deleteComment(event) {
+  commentAction = (event, link) => {
     event.preventDefault();
-    getResponseDocument(getDeepProp(this.props.comment, 'links.self.href'), {method: 'DELETE'}).then(() => {
-      this.props.onDelete();
+    const { href, data, options } = link;
+
+    if (Object.keys(data).length) {
+      options.body = JSON.stringify({ data });
+    }
+
+    getResponseDocument(href, options).then(() => {
+      console.log(`Called ${link.title} with ${options.method} for ${href}`);
+      this.props.refresh();
     });
   }
-
 }
 
 export default FluidComment;
