@@ -54,7 +54,12 @@ function processLinks(links) {
         title = key;
       }
 
-      if (rel.find(value => value.match(new RegExp(`${method}$`)))) {
+      const pattern = new RegExp(`${method}$`);
+      const match = Array.isArray(rel)
+        ? rel.find(value => value.match(pattern))
+        : rel.match(pattern);
+
+      if (match) {
         processed.push(processLink({ title, href, method, data }));
       }
     });
