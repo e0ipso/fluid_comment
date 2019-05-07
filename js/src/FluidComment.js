@@ -3,66 +3,68 @@
 import React from 'react';
 import FluidCommentLink from './FluidCommentLink'
 import { getDeepProp, getResponseDocument } from './functions.js';
+import { getMethodsFromRel } from './routes.js';
+
+function getSelfTitle(method) {
+  const titles = {
+    'PATCH': 'Edit',
+    'DELETE': 'Delete'
+  };
+
+  return titles[method] ? titles[method] : '';
+}
 
 function getLinkTitles(key) {
   const titles = {
-    'update': 'Edit',
-    'delete': 'Delete',
     'publish': 'Approve',
     'unpublish': 'Unpublish'
   };
 
-  return titles[key];
-}
-function getLinkOptions(action) {
-  const methods = {
-    'update': 'PATCH',
-    'delete': 'DELETE'
-  };
-
-  return { method: methods[action] }
+  return titles[key] ? titles[key] : '';
 }
 
 function processLink({ title, href, method, data = {} }) {
+  const options = { method };
+
   return {
-    title: getLinkTitles(title),
-    options: getLinkOptions(method),
     className: `comment-${title.toLowerCase()}`,
+    title,
+    options,
     href,
     data
   }
 }
+
 function processLinks(links) {
   let processed = [];
 
   Object.keys(links).forEach(key => {
 
-    let rel = [];
-    let data = {};
-    let title = '';
-    const href = links[key].href;
+    const link = links[key];
+    const { href } = link;
 
-    ['update', 'delete'].forEach(method => {
-      if (key === 'self') {
-        title = method;
-        rel = getDeepProp(links[key], 'meta.linkRel');
-      }
-      else {
-        const params = getDeepProp(links[key], 'meta.linkParams');
-        rel = params.rel;
-        data = params.data;
-        title = key;
-      }
+    if (key === 'self') {
+      const rel = getDeepProp(link, 'meta.linkRel');
+      const methods = getMethodsFromRel(rel);
 
-      const pattern = new RegExp(`${method}$`);
-      const match = Array.isArray(rel)
-        ? rel.find(value => value.match(pattern))
-        : rel.match(pattern);
+      methods.forEach(method => {
+        const title = getSelfTitle(method);
+        processed.push(processLink({ title, href, method }));
+      })
+    }
+    else {
+      const params = getDeepProp(link, 'meta.linkParams');
 
-      if (match) {
-        processed.push(processLink({ title, href, method, data }));
+      if (params) {
+        const { rel, data } = params;
+        const title = getLinkTitles(key);
+        const methods = getMethodsFromRel(rel);
+
+        methods.forEach(method => {
+          processed.push(processLink({ title, href, method, data }));
+        });
       }
-    });
+    }
   });
 
   return processed;
