@@ -46,7 +46,7 @@ class DefaultProvider implements HypermediaProviderInterface {
       if (!empty($link_relations)) {
         $cacheability = CacheableMetadata::createFromObject($context);
         $link = new Link($cacheability, $comments_url, $link_relations, $link_attributes);
-        $link_collection = $link_collection->withLink('add-comment', $link);
+        $link_collection = $link_collection->withLink('comments', $link);
       }
     }
     return $link_collection;
