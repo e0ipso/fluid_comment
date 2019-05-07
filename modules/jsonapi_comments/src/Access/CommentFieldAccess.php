@@ -11,9 +11,8 @@ use Drupal\Core\Http\Exception\CacheableAccessDeniedHttpException;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\jsonapi\Access\EntityAccessChecker;
-use Drupal\jsonapi\Access\RelationshipFieldAccess;
 use Drupal\jsonapi\ResourceType\ResourceType;
-use Drupal\jsonapi\Routing\Routes;
+use Drupal\jsonapi_comments\Routing\Routes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 
@@ -48,7 +47,7 @@ class CommentFieldAccess implements AccessInterface {
   public function access(Request $request, Route $route, AccountInterface $account) {
     $field_operation = $request->isMethodCacheable() ? 'view' : 'edit';
     $entity_operation = $request->isMethodCacheable() ? 'view' : 'update';
-    if ($resource_type = $request->get(Routes::RESOURCE_TYPE_KEY)) {
+    if ($resource_type = $request->get(Routes::HOST_RESOURCE_TYPE_KEY)) {
       assert($resource_type instanceof ResourceType);
       $entity = $request->get('entity');
       $comment_field_name = $route->getRequirement(static::ROUTE_REQUIREMENT_KEY);
