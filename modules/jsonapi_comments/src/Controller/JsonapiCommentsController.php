@@ -8,6 +8,7 @@ use Drupal\comment\CommentStorageInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Http\Exception\CacheableBadRequestHttpException;
+use Drupal\Core\Http\Exception\CacheableHttpException;
 use Drupal\Core\Url;
 use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
@@ -19,6 +20,7 @@ use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Revisions\ResourceVersionRouteEnhancer;
 use Drupal\jsonapi_comments\Routing\Routes;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class JsonapiCommentsController extends EntityResource {
 
@@ -58,6 +60,7 @@ class JsonapiCommentsController extends EntityResource {
   }
 
   public function reply(Request $request, ResourceType $resource_type, EntityInterface $entity, EntityInterface $parent = NULL) {
+    throw new CacheableHttpException(new CacheableMetadata(), Response::HTTP_NOT_IMPLEMENTED, 'Not yet implemented');
   }
 
   /**
