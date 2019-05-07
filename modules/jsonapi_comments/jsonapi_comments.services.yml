@@ -1,0 +1,10 @@
+services:
+  jsonapi_comments.controller:
+    parent: jsonapi.entity_resource
+    class: Drupal\jsonapi_comments\Controller\JsonapiCommentsController
+
+  access_check.jsonapi_comments.comment_field_access:
+    class: Drupal\jsonapi_comments\Access\CommentFieldAccess
+    arguments: ['@jsonapi.entity_access_checker']
+    tags:
+      - { name: access_check, applies_to: _jsonapi_comments_comment_field_access, needs_incoming_request: TRUE }
