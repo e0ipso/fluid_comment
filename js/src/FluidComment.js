@@ -41,30 +41,20 @@ function processLinks(links) {
   Object.keys(links).forEach(key => {
 
     const link = links[key];
+    const params = getDeepProp(link, 'meta.linkParams');
     const { href } = link;
+    const { rel } = params;
+    const data = params.data ? params.data : {};
 
-    if (key === 'self') {
-      const rel = getDeepProp(link, 'meta.linkParams');
-      const methods = getMethodsFromRel(rel);
+    const methods = getMethodsFromRel(rel);
 
-      methods.forEach(method => {
-        const title = getSelfTitle(method);
-        processed.push(processLink({ title, href, method }));
-      })
-    }
-    else {
-      const params = getDeepProp(link, 'meta.linkParams');
+    methods.forEach(method => {
+      const title = key === 'self'
+        ? getSelfTitle(method)
+        : getLinkTitles(key);
 
-      if (params) {
-        const { rel, data } = params;
-        const title = getLinkTitles(key);
-        const methods = getMethodsFromRel(rel);
-
-        methods.forEach(method => {
-          processed.push(processLink({ title, href, method, data }));
-        });
-      }
-    }
+      processed.push(processLink({ title, href, method, data }));
+    });
   });
 
   return processed;
@@ -147,7 +137,7 @@ class FluidComment extends React.Component {
     }
 
     getResponseDocument(href, options).then(() => {
-      console.log(`Called ${link.title} with ${options.method} for ${href}`);
+      // console.log(`Called ${link.title} with ${options.method} for ${href}`);
       this.props.refresh();
     });
   }
