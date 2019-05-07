@@ -45,7 +45,6 @@ export function getResponseDocument(url, options = {}) {
     return fetch(url, options).then(response => {
       return response.status !== 204 ? response.json() : null;
     }).then(doc => {
-      console.log(url, doc);
       return doc;
     }).catch(console.log);
   });

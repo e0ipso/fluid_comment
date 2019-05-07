@@ -33,7 +33,7 @@ class FluidCommentWrapper extends React.Component {
           key={comment.id}
           index={index}
           comment={comment}
-          onDelete={() => this.refreshComments()}
+          refresh={() => this.refreshComments()}
         />
       )));
     }
