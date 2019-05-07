@@ -9,7 +9,11 @@ class FluidCommentWrapper extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { loggedIn: this.props.loginUrl ? false : null, comments: [] };
+    this.state = {
+      loggedIn: this.props.loginUrl ? false : null,
+      comments: [],
+      isRefreshing: false
+    };
   }
 
   componentDidMount() {
@@ -26,33 +30,46 @@ class FluidCommentWrapper extends React.Component {
 
   render() {
     const content = [];
-    if (this.state.comments.length) {
+    const { commentsUrl, currentNode, loginUrl, commentType } = this.props;
+    const { comments, loggedIn, isRefreshing } = this.state;
 
-      content.push(this.state.comments.map((comment, index) => (
+    if (comments.length) {
+
+      content.push(comments.map((comment, index) => (
         <FluidComment
           key={comment.id}
           index={index}
           comment={comment}
           refresh={() => this.refreshComments()}
+          isRefreshing={isRefreshing}
         />
       )));
     }
 
-    if (this.state.loggedIn === false) {
+    if (loggedIn === false) {
       const onLogin = (success) => {
         this.setState({loggedIn: !!success});
         this.refreshComments();
       };
 
       content.push((
-          <div>
-            <h3>Log in to comment:</h3>
-            <InlineLoginForm key="loginForm" loginUrl={this.props.loginUrl} onLogin={onLogin} />
-          </div>
+        <div>
+          <h3>Log in to comment:</h3>
+          <InlineLoginForm key="loginForm" loginUrl={loginUrl} onLogin={onLogin} />
+        </div>
       ));
     }
-    else if (this.props.currentNode) {
-      content.push((<FluidCommentForm key="commentForm" commentTarget={this.props.currentNode} commentType={this.props.commentType} commentsUrl={this.props.commentsUrl} onSubmit={() => this.refreshComments()}/>));
+    else if (currentNode) {
+      content.push((
+        <FluidCommentForm
+          key="commentForm"
+          commentTarget={currentNode}
+          commentType={commentType}
+          commentsUrl={commentsUrl}
+          onSubmit={() => this.refreshComments()}
+          isRefreshing={isRefreshing}
+        />
+      ));
     }
     return content;
   }
@@ -88,6 +105,9 @@ class FluidCommentWrapper extends React.Component {
   }
 
   getAndAddComments(commentsUrl, previous = []) {
+
+    this.setState({ isRefreshing: true });
+
     getResponseDocument(commentsUrl).then(doc => {
       const data = getDeepProp(doc, 'data');
       const included = getDeepProp(doc, 'included');
@@ -99,7 +119,7 @@ class FluidCommentWrapper extends React.Component {
         this.getAndAddComments(nextUrl, comments);
       }
 
-      this.setState({ comments });
+      this.setState({ comments, isRefreshing: false });
     });
   }
 

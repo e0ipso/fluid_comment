@@ -67,7 +67,7 @@ class FluidComment extends React.Component {
   }
 
   render() {
-    const { comment } = this.props;
+    const { comment, isRefreshing } = this.props;
 
     const subject = getDeepProp(comment, 'attributes.subject');
     const body = getDeepProp(comment, 'attributes.comment_body.processed');
@@ -118,7 +118,10 @@ class FluidComment extends React.Component {
             {links && <ul className="links inline">
               {links.map(link => (
                 <li key={`${comment.id}-${link.className}`} className={link.className}>
-                  <FluidCommentLink link={link} handleClick={(e) => this.commentAction(e, link)} />
+                  <FluidCommentLink
+                    link={link}
+                    handleClick={(e) => this.commentAction(e, link)}
+                  />
                 </li>
               ))}
             </ul>}
@@ -129,7 +132,14 @@ class FluidComment extends React.Component {
   }
 
   commentAction = (event, link) => {
+    const { isRefreshing, refresh } = this.props;
+
     event.preventDefault();
+
+    if (isRefreshing) {
+      return;
+    }
+
     const { href, data, options } = link;
 
     if (Object.keys(data).length) {
@@ -138,7 +148,7 @@ class FluidComment extends React.Component {
 
     getResponseDocument(href, options).then(() => {
       // console.log(`Called ${link.title} with ${options.method} for ${href}`);
-      this.props.refresh();
+      refresh();
     });
   }
 }

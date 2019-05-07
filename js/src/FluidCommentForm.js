@@ -7,24 +7,35 @@ class FluidCommentForm extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {subjectField: '', bodyField: ''};
+    this.state = {
+      subjectField: '',
+      bodyField: ''
+    };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   render() {
+    const { isRefreshing } = this.props;
+    const { subjectField, bodyField } = this.state;
+
     return (
-        <form onSubmit={this.handleSubmit}>
-          <label>
-            Subject:&nbsp;
-            <input type="text" name="subjectField" value={this.state.subjectField} onChange={this.handleChange} />
-          </label>
-          <label>
-            Body:&nbsp;
-            <input type="text" name="bodyField" value={this.state.bodyField} onChange={this.handleChange} />
-          </label>
-          <input type="submit" value="Post Comment" />
-        </form>
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Subject:&nbsp;
+          <input type="text" name="subjectField" value={subjectField} onChange={this.handleChange} />
+        </label>
+        <label>
+          Body:&nbsp;
+          <input type="text" name="bodyField" value={bodyField} onChange={this.handleChange} />
+        </label>
+        <input
+          className={`button ${isRefreshing && 'is-disabled'}`}
+          type="submit"
+          value="Post Comment"
+          disabled={isRefreshing}
+        />
+      </form>
     );
   }
 
