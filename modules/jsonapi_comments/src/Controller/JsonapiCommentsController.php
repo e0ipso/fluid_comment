@@ -29,16 +29,17 @@ class JsonapiCommentsController extends EntityResource {
     if ($resource_object instanceof EntityAccessDeniedHttpException) {
       throw $resource_object;
     }
-    $comment_field_name = $request->get(Routes::COMMENT_FIELD_NAME_KEY);
+    $internal_field_name = $request->get(Routes::COMMENT_FIELD_NAME_KEY);
+    $public_field_name = $resource_type->getPublicName($internal_field_name);
     $comment_storage = $this->entityTypeManager->getStorage('comment');
     assert($comment_storage instanceof CommentStorageInterface);
     // @todo: add actual support for the `page` parameter.
     $pagination = $this->getPagination($request, $resource_type);
-    $comments = $comment_storage->loadThread($entity, $comment_field_name, CommentManagerInterface::COMMENT_MODE_FLAT);
-    $resource_objects = array_map(function (CommentInterface $comment) use ($resource_type, $entity, $comment_field_name) {
+    $comments = $comment_storage->loadThread($entity, $internal_field_name, CommentManagerInterface::COMMENT_MODE_FLAT);
+    $resource_objects = array_map(function (CommentInterface $comment) use ($resource_type, $entity, $public_field_name) {
       $resource_object = $this->entityAccessChecker->getAccessCheckedResourceObject($comment);
       $reply_url = Url::fromRoute(
-        "jsonapi.{$resource_type->getTypeName()}.jsonapi_comments.{$comment_field_name}.child_reply",
+        "jsonapi.{$resource_type->getTypeName()}.jsonapi_comments.{$public_field_name}.child_reply",
         ['entity' => $entity->uuid(), 'parent' => $comment->uuid()]
       );
       $cacheability = CacheableMetadata::createFromObject($entity)->addCacheableDependency($comment);
