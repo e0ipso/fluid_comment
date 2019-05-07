@@ -44,7 +44,7 @@ function processLinks(links) {
     const { href } = link;
 
     if (key === 'self') {
-      const rel = getDeepProp(link, 'meta.linkRel');
+      const rel = getDeepProp(link, 'meta.linkParams');
       const methods = getMethodsFromRel(rel);
 
       methods.forEach(method => {
@@ -127,7 +127,7 @@ class FluidComment extends React.Component {
             </div>
             {links && <ul className="links inline">
               {links.map(link => (
-                <li className={link.className}>
+                <li key={`${comment.id}-${link.className}`} className={link.className}>
                   <FluidCommentLink link={link} handleClick={(e) => this.commentAction(e, link)} />
                 </li>
               ))}
