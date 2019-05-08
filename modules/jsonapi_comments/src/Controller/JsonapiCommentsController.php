@@ -80,11 +80,11 @@ class JsonapiCommentsController extends EntityResource {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param \Drupal\Core\Entity\EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $commented_entity
    *   The commented entity.
    * @param $comment_field_name
    *   The comment field for which to serve comments.
-   * @param $parent
+   * @param \Drupal\comment\CommentInterface $parent_comment
    *   (optional) The comment entity being replied to.
    *
    * @return \Drupal\jsonapi\ResourceResponse
@@ -94,12 +94,12 @@ class JsonapiCommentsController extends EntityResource {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function reply(Request $request, EntityInterface $entity, $comment_field_name, EntityInterface $parent = NULL) {
+  public function reply(Request $request, EntityInterface $commented_entity, $comment_field_name, CommentInterface $parent_comment = NULL) {
     // The following lines are needed in addition to the copied code from
     // Drupal\jsonapi\Controller\EntityResource::createIndividual. There is an
     // additional code block further below as well.
     $this->blockUnsupportedQueryParameters($request);
-    $comment_field_storage_definition = FieldStorageConfig::loadByName($entity->getEntityTypeId(), $comment_field_name);
+    $comment_field_storage_definition = FieldStorageConfig::loadByName($commented_entity->getEntityTypeId(), $comment_field_name);
     $comment_type = $comment_field_storage_definition->getSetting('comment_type');
     $comment_resource_type = $this->resourceTypeRepository->get('comment', $comment_type);
 
@@ -131,11 +131,11 @@ class JsonapiCommentsController extends EntityResource {
     // This is the other part of this method which is not an exact copy of
     // Drupal\jsonapi\Controller\EntityResource::createIndividual.
     // @todo: ensure that this can't be used to add a comment where commenting is not permitted.
-    $parsed_entity->entity_type = $entity->getEntityTypeId();
-    $parsed_entity->entity_id = $entity;
+    $parsed_entity->entity_type = $commented_entity->getEntityTypeId();
+    $parsed_entity->entity_id = $commented_entity;
     $parsed_entity->field_name = $comment_field_name;
-    if ($parent) {
-      $parsed_entity->pid = $parent;
+    if ($parent_comment) {
+      $parsed_entity->pid = $parent_comment;
     }
 
     static::validate($parsed_entity);

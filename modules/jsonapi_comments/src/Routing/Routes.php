@@ -117,11 +117,11 @@ class Routes implements ContainerInjectionInterface {
           continue;
         }
         $public_field_name = $host_resource_type->getPublicName($internal_field_name);
-        $path = "{$host_resource_type->getPath()}/{entity}/{$public_field_name}";
+        $path = "{$host_resource_type->getPath()}/{commented_entity}/{$public_field_name}";
         $read_route = new Route($path);
         $read_route->addRequirements(['_permission' => 'view comments']);
         $read_route->setOption('parameters', [
-          'entity' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $host_resource_type->getEntityTypeId()],
+          'commented_entity' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $host_resource_type->getEntityTypeId()],
         ]);
         $read_route->setDefault(RouteObjectInterface::CONTROLLER_NAME, static::CONTROLLER_SERVICE_NAME . ':getComments');
         $read_route->setDefault(static::COMMENT_FIELD_NAME_KEY, $internal_field_name);
@@ -130,17 +130,17 @@ class Routes implements ContainerInjectionInterface {
         $reply_route = new Route($path);
         $reply_route->addRequirements(['_permission' => 'post comments']);
         $reply_route->setOption('parameters', [
-          'entity' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $host_resource_type->getEntityTypeId()],
+          'commented_entity' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $host_resource_type->getEntityTypeId()],
         ]);
         $reply_route->setDefault(RouteObjectInterface::CONTROLLER_NAME, static::CONTROLLER_SERVICE_NAME . ':reply');
         $reply_route->setDefault(static::COMMENT_FIELD_NAME_KEY, $internal_field_name);
         $reply_route->setMethods(['POST']);
         $routes->add("jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comments.{$public_field_name}.reply", $reply_route);
         $child_reply_route = clone $reply_route;
-        $child_reply_route->setPath("{$path}/{parent}/replies");
-        $child_reply_route->setOption('parameters', [
-          'parent' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $comment_resource_type->getEntityTypeId()],
-        ] + $child_reply_route->getOption('parameters'));
+        $child_reply_route->setPath("{$path}/{parent_comment}/replies");
+        $child_reply_route->setOption('parameters', $child_reply_route->getOption('parameters') + [
+          'parent_comment' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $comment_resource_type->getEntityTypeId()],
+        ]);
         $routes->add("jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comments.{$public_field_name}.child_reply", $child_reply_route);
       }
     }
