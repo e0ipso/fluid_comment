@@ -69,12 +69,12 @@ class Routes implements ContainerInjectionInterface {
    *   The JSON:API resource type repository.
    * @param \Drupal\comment\CommentManagerInterface $comment_manager
    *   The comment manager.
-   * @param $authentication_providers
+   * @param string[] $authentication_providers
    *   The list of available authentication providers.
-   * @param $jsonapi_base_path
+   * @param string $jsonapi_base_path
    *   The JSON:API base path.
    */
-  public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, CommentManagerInterface $comment_manager, $authentication_providers, $jsonapi_base_path) {
+  public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, CommentManagerInterface $comment_manager, array $authentication_providers, $jsonapi_base_path) {
     $this->resourceTypeRepository = $resource_type_repository;
     $this->commentManager = $comment_manager;
     $this->providerIds = array_keys($authentication_providers);

@@ -7,4 +7,3 @@ dependencies:
   - drupal:comment
   - drupal:jsonapi
   - drupal:jsonapi_hypermedia
-

@@ -38,7 +38,7 @@ class JsonapiCommentsController extends EntityResource {
    *   The request object.
    * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
    *   The commented entity.
-   * @param $comment_field_name
+   * @param string $comment_field_name
    *   The comment field for which to serve comments.
    *
    * @return \Drupal\jsonapi\ResourceResponse
@@ -82,7 +82,7 @@ class JsonapiCommentsController extends EntityResource {
    *   The request object.
    * @param \Drupal\Core\Entity\EntityInterface $commented_entity
    *   The commented entity.
-   * @param $comment_field_name
+   * @param string $comment_field_name
    *   The comment field for which to serve comments.
    * @param \Drupal\comment\CommentInterface $parent_comment
    *   (optional) The comment entity being replied to.
@@ -179,7 +179,12 @@ class JsonapiCommentsController extends EntityResource {
    *   Thrown when an unsupported query parameter is requested.
    */
   protected function blockUnsupportedQueryParameters(Request $request) {
-    foreach (['sort', 'filter', ResourceVersionRouteEnhancer::RESOURCE_VERSION_QUERY_PARAMETER] as $unsupported_query_param) {
+    $unsupported_query_params = [
+      'sort',
+      'filter',
+      ResourceVersionRouteEnhancer::RESOURCE_VERSION_QUERY_PARAMETER,
+    ];
+    foreach ($unsupported_query_params as $unsupported_query_param) {
       if ($request->query->has($unsupported_query_param)) {
         $cacheability = new CacheableMetadata();
         $cacheability->addCacheContexts(['url.path', "url.query_args:$unsupported_query_param"]);
