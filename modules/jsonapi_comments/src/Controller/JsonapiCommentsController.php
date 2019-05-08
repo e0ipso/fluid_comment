@@ -6,15 +6,16 @@ use Drupal\comment\CommentInterface;
 use Drupal\comment\CommentManagerInterface;
 use Drupal\comment\CommentStorageInterface;
 use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Http\Exception\CacheableBadRequestHttpException;
-use Drupal\Core\Url;
 use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\JsonApiResource\JsonApiDocumentTopLevel;
 use Drupal\jsonapi\JsonApiResource\Link;
+use Drupal\jsonapi\JsonApiResource\LinkCollection;
 use Drupal\jsonapi\JsonApiResource\ResourceObject;
 use Drupal\jsonapi\JsonApiResource\ResourceObjectData;
 use Drupal\jsonapi\Query\OffsetPage;
@@ -22,27 +23,34 @@ use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Revisions\ResourceVersionRouteEnhancer;
 use Drupal\jsonapi_comments\Routing\Routes;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class JsonapiCommentsController extends EntityResource {
 
-  public function getComments(Request $request, ResourceType $resource_type, EntityInterface $entity) {
+  public function getComments(Request $request, ResourceType $resource_type, FieldableEntityInterface $entity) {
+    $this->blockUnsupportedQueryParameters($request);
     $resource_object = $this->entityAccessChecker->getAccessCheckedResourceObject($entity);
     if ($resource_object instanceof EntityAccessDeniedHttpException) {
       throw $resource_object;
     }
     $internal_field_name = $request->get(Routes::COMMENT_FIELD_NAME_KEY);
     $comment_storage = $this->entityTypeManager->getStorage('comment');
+    $per_page = (int) $entity->get($internal_field_name)->getFieldDefinition()->getSetting('per_page');
     assert($comment_storage instanceof CommentStorageInterface);
-    // @todo: add actual support for the `page` parameter.
-    $pagination = $this->getPagination($request, $resource_type);
-    $comments = $comment_storage->loadThread($entity, $internal_field_name, CommentManagerInterface::COMMENT_MODE_FLAT);
+    $comments = $comment_storage->loadThread($entity, $internal_field_name, CommentManagerInterface::COMMENT_MODE_FLAT, $per_page, 0);
     $resource_objects = array_map(function (CommentInterface $comment) {
       return $this->entityAccessChecker->getAccessCheckedResourceObject($comment);
     }, $comments);
     $primary_data = new ResourceObjectData($resource_objects);
-    $response = $this->respondWithCollection($primary_data, $this->getIncludes($request, $primary_data), $request, $resource_type, $pagination);
-    return $response;
+    return $this->buildWrappedResponse(
+      $primary_data,
+      $request,
+      $this->getIncludes($request, $primary_data),
+      Response::HTTP_OK,
+      [],
+      static::getPagerLinks($request, new OffsetPage(0, 0))
+    );
   }
 
   /**
@@ -53,6 +61,7 @@ class JsonapiCommentsController extends EntityResource {
    * details.
    */
   public function reply(Request $request, ResourceType $comment_resource_type, EntityInterface $entity, EntityInterface $parent = NULL) {
+    $this->blockUnsupportedQueryParameters($request);
     $parsed_entity = $this->deserialize($comment_resource_type, $request, JsonApiDocumentTopLevel::class);
 
     if ($parsed_entity instanceof FieldableEntityInterface) {
@@ -115,11 +124,8 @@ class JsonapiCommentsController extends EntityResource {
     return $response;
   }
 
-  /**
-   * @return \Drupal\jsonapi\Query\OffsetPage
-   */
-  protected function getPagination(Request $request, ResourceType $resource_type) {
-    foreach (['sort', 'filter', 'page', ResourceVersionRouteEnhancer::RESOURCE_VERSION_QUERY_PARAMETER] as $unsupported_query_param) {
+  protected function blockUnsupportedQueryParameters(Request $request) {
+    foreach (['sort', 'filter', ResourceVersionRouteEnhancer::RESOURCE_VERSION_QUERY_PARAMETER] as $unsupported_query_param) {
       if ($request->query->has($unsupported_query_param)) {
         $cacheability = new CacheableMetadata();
         $cacheability->addCacheContexts(['url.path', "url.query_args:$unsupported_query_param"]);
@@ -127,8 +133,30 @@ class JsonapiCommentsController extends EntityResource {
         throw new CacheableBadRequestHttpException($cacheability, $message);
       }
     }
-    $params = parent::getJsonApiParams($request, $resource_type);
-    return $params[OffsetPage::KEY_NAME];
+  }
+
+  protected static function getPagerLinks(Request $request, OffsetPage $page_param, array $link_context = []) {
+    global $pager_total;
+    // The pager element is always `0` because multiple pagers are not supported
+    // via JSON:API.
+    $element = 0;
+    $pager_links = new LinkCollection([]);
+    $current_page = pager_find_page($element);
+    if ($pager_total[$element] <= 1) {
+      return $pager_links;
+    }
+    $default_query = UrlHelper::filterQueryParameters($request->query->all(), ['page']);
+    if ($current_page < $pager_total[$element]) {
+      $next_url = static::getRequestLink($request, ['page' => $current_page + 1] + $default_query);
+      $pager_links = $pager_links->withLink('next', new Link(new CacheableMetadata(), $next_url, ['next']));
+    }
+    if ($current_page > 0) {
+      $first_url = static::getRequestLink($request, ['page' => 0] + $default_query);
+      $pager_links = $pager_links->withLink('first', new Link(new CacheableMetadata(), $first_url, ['first']));
+      $prev_url = static::getRequestLink($request, ['page' => $current_page - 1] + $default_query);
+      $pager_links = $pager_links->withLink('prev', new Link(new CacheableMetadata(), $prev_url, ['prev']));
+    }
+    return $pager_links;
   }
 
 }
