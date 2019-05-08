@@ -1,7 +1,8 @@
 <?php
 
-
 namespace Drupal\jsonapi_comments\Controller;
+
+use Drupal\comment\CommentManagerInterface;
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Cache\CacheableMetadata;

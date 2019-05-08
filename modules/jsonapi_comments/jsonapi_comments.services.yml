@@ -10,4 +10,8 @@ services:
       - { name: jsonapi_hypermedia_provider, priority: 0 }
 
   paramconverter.jsonapi_comments.entity_uuid:
-    decorates: paramconverter.jsonapi.entity_uuid
+    parent: paramconverter.jsonapi.entity_uuid
+    class: Drupal\jsonapi_comments\ParamConverter\JsonApiCommentsEntityUuidConverter
+    tags:
+      # Priority 10, to ensure it runs before @paramconverter.entity.
+      - { name: paramconverter, priority: 10 }

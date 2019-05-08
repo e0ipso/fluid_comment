@@ -21,8 +21,7 @@ class JsonApiCommentsEntityUuidConverter extends EntityUuidConverter {
    * {@inheritdoc}
    */
   public function applies($definition, $name, Route $route) {
-    $applies = !empty($definition['type']) && strpos($definition['type'], static::PARAM_TYPE_NAME) === 0;
-    return $applies || parent::applies($definition, $name, $route);
+    return !empty($definition['type']) && strpos($definition['type'], static::PARAM_TYPE_NAME) === 0;
   }
 
 }
