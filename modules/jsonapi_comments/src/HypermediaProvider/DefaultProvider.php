@@ -14,17 +14,33 @@ use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Drupal\jsonapi_hypermedia\HypermediaProviderInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
+/**
+ * Provides comment-specific hyperlinks.
+ *
+ * @internal
+ */
 class DefaultProvider implements HypermediaProviderInterface {
 
   /**
+   * The JSON:API resource type repository.
+   *
    * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface
    */
   protected $resourceTypeRepository;
 
+  /**
+   * DefaultProvider constructor.
+   *
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
+   *   The JSON:API resource type repository.
+   */
   public function __construct(ResourceTypeRepositoryInterface $resource_type_repository) {
     $this->resourceTypeRepository = $resource_type_repository;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function hyperlink(LinkCollection $link_collection) {
     $context = $link_collection->getContext();
     if (!$context instanceof ResourceObject) {
@@ -44,6 +60,17 @@ class DefaultProvider implements HypermediaProviderInterface {
     return $link_collection;
   }
 
+  /**
+   * Adds a reply link to a comment resource object if it can be replied to.
+   *
+   * @param \Drupal\jsonapi\JsonApiResource\ResourceObject $comment_object
+   *   The comment resource object.
+   * @param \Drupal\jsonapi\JsonApiResource\LinkCollection $link_collection
+   *   The existing link collection.
+   *
+   * @return \Drupal\jsonapi\JsonApiResource\LinkCollection
+   *   The modified link collection.
+   */
   protected function addCommentReplyLink(ResourceObject $comment_object, LinkCollection $link_collection) {
     $host_entity = $comment_object->getField('entity_id')->entity;
     assert($host_entity instanceof FieldableEntityInterface);

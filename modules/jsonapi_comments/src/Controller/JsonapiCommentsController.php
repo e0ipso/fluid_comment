@@ -1,20 +1,16 @@
 <?php
 
-namespace Drupal\jsonapi_comments\Controller;
 
-use Drupal\comment\CommentInterface;
-use Drupal\comment\CommentManagerInterface;
-use Drupal\comment\CommentStorageInterface;
+namespace Drupal\jsonapi_comments\Controller;
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Http\Exception\CacheableBadRequestHttpException;
-<<<<<<< HEAD
-=======
+use Drupal\comment\CommentInterface;
+use Drupal\comment\CommentStorageInterface;
 use Drupal\field\Entity\FieldStorageConfig;
->>>>>>> Code simplification.
 use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\JsonApiResource\JsonApiDocumentTopLevel;
@@ -27,8 +23,29 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
+/**
+ * Serves specialized comment routes.
+ *
+ * @internal
+ */
 class JsonapiCommentsController extends EntityResource {
 
+  /**
+   * Responds with a collection of comments.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+   *   The commented entity.
+   * @param $comment_field_name
+   *   The comment field for which to serve comments.
+   *
+   * @return \Drupal\jsonapi\ResourceResponse
+   *   A JSON:API resource response.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
   public function getComments(Request $request, FieldableEntityInterface $entity, $comment_field_name) {
     $this->blockUnsupportedQueryParameters($request);
     $resource_object = $this->entityAccessChecker->getAccessCheckedResourceObject($entity);
@@ -59,6 +76,22 @@ class JsonapiCommentsController extends EntityResource {
    * The additional code blocks add required data to a posted comment so that
    * the decoupled consumer does not need to know these Drupal implementation
    * details.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The commented entity.
+   * @param $comment_field_name
+   *   The comment field for which to serve comments.
+   * @param $parent
+   *   (optional) The comment entity being replied to.
+   *
+   * @return \Drupal\jsonapi\ResourceResponse
+   *   A JSON:API resource response.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function reply(Request $request, EntityInterface $entity, $comment_field_name, EntityInterface $parent = NULL) {
     // The following lines are needed in addition to the copied code from
@@ -131,6 +164,19 @@ class JsonapiCommentsController extends EntityResource {
     return $response;
   }
 
+  /**
+   * Blocks any requests using a number of unsupported query parameters.
+   *
+   * These comment-specific endpoints cannot support sorting and filtering
+   * (because CommentStorage::loadThread cannot support them), nor does this
+   * route support resource versioning.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   *
+   * @throws \Drupal\Core\Http\Exception\CacheableBadRequestHttpException
+   *   Thrown when an unsupported query parameter is requested.
+   */
   protected function blockUnsupportedQueryParameters(Request $request) {
     foreach (['sort', 'filter', ResourceVersionRouteEnhancer::RESOURCE_VERSION_QUERY_PARAMETER] as $unsupported_query_param) {
       if ($request->query->has($unsupported_query_param)) {

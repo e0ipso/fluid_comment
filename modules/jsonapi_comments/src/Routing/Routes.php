@@ -4,9 +4,7 @@ namespace Drupal\jsonapi_comments\Routing;
 
 use Drupal\comment\CommentManagerInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\jsonapi\ParamConverter\ResourceTypeConverter;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Drupal\jsonapi\Routing\Routes as JsonapiRoutes;
 use Drupal\jsonapi_comments\ParamConverter\JsonApiCommentsEntityUuidConverter;
@@ -17,9 +15,16 @@ use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Class Routes.
+ *
+ * @internal
  */
 class Routes implements ContainerInjectionInterface {
 
+  /**
+   * The service ID for JSON:API Comments routes.
+   *
+   * @var string
+   */
   const CONTROLLER_SERVICE_NAME = 'jsonapi_comments.controller';
 
   /**
@@ -30,17 +35,21 @@ class Routes implements ContainerInjectionInterface {
   const COMMENT_FIELD_NAME_KEY = 'comment_field_name';
 
   /**
+   * The JSON:API resource type repository.
+   *
    * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface
    */
   protected $resourceTypeRepository;
 
   /**
+   * The comment manager.
+   *
    * @var \Drupal\comment\CommentManagerInterface
    */
   protected $commentManager;
 
   /**
-   * List of providers.
+   * List of authentication providers.
    *
    * @var string[]
    */
@@ -55,6 +64,15 @@ class Routes implements ContainerInjectionInterface {
 
   /**
    * Routes constructor.
+   *
+   * @param \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface $resource_type_repository
+   *   The JSON:API resource type repository.
+   * @param \Drupal\comment\CommentManagerInterface $comment_manager
+   *   The comment manager.
+   * @param $authentication_providers
+   *   The list of available authentication providers.
+   * @param $jsonapi_base_path
+   *   The JSON:API base path.
    */
   public function __construct(ResourceTypeRepositoryInterface $resource_type_repository, CommentManagerInterface $comment_manager, $authentication_providers, $jsonapi_base_path) {
     $this->resourceTypeRepository = $resource_type_repository;
@@ -76,7 +94,10 @@ class Routes implements ContainerInjectionInterface {
   }
 
   /**
+   * Provide comment-specific JSON:API compliant route definitions.
+   *
    * @return \Symfony\Component\Routing\RouteCollection
+   *   The routes.
    */
   public function routes() {
     $routes = new RouteCollection();
