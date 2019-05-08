@@ -11,6 +11,6 @@ services:
 
   jsonapi_comments.jsonapi_hypermedia_provider:
     class: Drupal\jsonapi_comments\HypermediaProvider\DefaultProvider
-    arguments: ['@entity_type.manager']
+    arguments: ['@jsonapi.resource_type.repository']
     tags:
       - { name: jsonapi_hypermedia_provider, priority: 0 }
