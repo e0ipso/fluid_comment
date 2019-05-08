@@ -66,12 +66,25 @@ class DefaultProvider implements HypermediaProviderInterface {
     return $link_collection->withLink('reply', $link);
   }
 
-  protected function addCommentCollectionLink(ResourceObject $context, CommentFieldItemList $field, LinkCollection $link_collection) {
-    $resource_type = $context->getResourceType();
+  /**
+   * Adds a link for adding comments to comment-able resource objects.
+   *
+   * @param \Drupal\jsonapi\JsonApiResource\ResourceObject $commented_resource_object
+   *   The commented resource object.
+   * @param \Drupal\comment\CommentFieldItemList $field
+   *   The comment field.
+   * @param \Drupal\jsonapi\JsonApiResource\LinkCollection $link_collection
+   *   The existing link collection.
+   *
+   * @return \Drupal\jsonapi\JsonApiResource\LinkCollection
+   *   The modified link collection.
+   */
+  protected function addCommentCollectionLink(ResourceObject $commented_resource_object, CommentFieldItemList $field, LinkCollection $link_collection) {
+    $resource_type = $commented_resource_object->getResourceType();
     $comment_field_name = $field->getName();
     $comment_route_name = "jsonapi.{$resource_type->getTypeName()}.jsonapi_comments.{$comment_field_name}";
     try {
-      $comments_url = Url::fromRoute($comment_route_name, ['entity' => $context->getId()]);
+      $comments_url = Url::fromRoute($comment_route_name, ['entity' => $commented_resource_object->getId()]);
     }
     catch (RouteNotFoundException $e) {
       return $link_collection;
@@ -88,7 +101,7 @@ class DefaultProvider implements HypermediaProviderInterface {
       'commentFieldName' => $resource_type->getPublicName($comment_field_name),
     ];
     if (!empty($link_relations)) {
-      $cacheability = CacheableMetadata::createFromObject($context);
+      $cacheability = CacheableMetadata::createFromObject($commented_resource_object);
       $link = new Link($cacheability, $comments_url, $link_relations, $link_attributes);
       return $link_collection->withLink('comments', $link);
     }

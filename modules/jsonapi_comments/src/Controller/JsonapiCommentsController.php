@@ -11,6 +11,10 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Http\Exception\CacheableBadRequestHttpException;
+<<<<<<< HEAD
+=======
+use Drupal\field\Entity\FieldStorageConfig;
+>>>>>>> Code simplification.
 use Drupal\jsonapi\Controller\EntityResource;
 use Drupal\jsonapi\Exception\EntityAccessDeniedHttpException;
 use Drupal\jsonapi\JsonApiResource\JsonApiDocumentTopLevel;
@@ -18,27 +22,23 @@ use Drupal\jsonapi\JsonApiResource\Link;
 use Drupal\jsonapi\JsonApiResource\LinkCollection;
 use Drupal\jsonapi\JsonApiResource\ResourceObject;
 use Drupal\jsonapi\JsonApiResource\ResourceObjectData;
-use Drupal\jsonapi\Query\OffsetPage;
-use Drupal\jsonapi\ResourceType\ResourceType;
 use Drupal\jsonapi\Revisions\ResourceVersionRouteEnhancer;
-use Drupal\jsonapi_comments\Routing\Routes;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class JsonapiCommentsController extends EntityResource {
 
-  public function getComments(Request $request, ResourceType $resource_type, FieldableEntityInterface $entity) {
+  public function getComments(Request $request, FieldableEntityInterface $entity, $comment_field_name) {
     $this->blockUnsupportedQueryParameters($request);
     $resource_object = $this->entityAccessChecker->getAccessCheckedResourceObject($entity);
     if ($resource_object instanceof EntityAccessDeniedHttpException) {
       throw $resource_object;
     }
-    $internal_field_name = $request->get(Routes::COMMENT_FIELD_NAME_KEY);
     $comment_storage = $this->entityTypeManager->getStorage('comment');
-    $per_page = (int) $entity->get($internal_field_name)->getFieldDefinition()->getSetting('per_page');
+    $per_page = (int) $entity->get($comment_field_name)->getFieldDefinition()->getSetting('per_page');
     assert($comment_storage instanceof CommentStorageInterface);
-    $comments = $comment_storage->loadThread($entity, $internal_field_name, CommentManagerInterface::COMMENT_MODE_FLAT, $per_page, 0);
+    $comments = $comment_storage->loadThread($entity, $comment_field_name, CommentManagerInterface::COMMENT_MODE_FLAT, $per_page, 0);
     $resource_objects = array_map(function (CommentInterface $comment) {
       return $this->entityAccessChecker->getAccessCheckedResourceObject($comment);
     }, $comments);
@@ -49,19 +49,26 @@ class JsonapiCommentsController extends EntityResource {
       $this->getIncludes($request, $primary_data),
       Response::HTTP_OK,
       [],
-      static::getPagerLinks($request, new OffsetPage(0, 0))
+      static::getPaginationLinks($request)
     );
   }
 
   /**
-   * Copy of EntityResource::createIndividual except for one code block.
+   * Copy of EntityResource::createIndividual except for two code blocks.
    *
-   * The additional code block adds required data to a posted comment so that
+   * The additional code blocks add required data to a posted comment so that
    * the decoupled consumer does not need to know these Drupal implementation
    * details.
    */
-  public function reply(Request $request, ResourceType $comment_resource_type, EntityInterface $entity, EntityInterface $parent = NULL) {
+  public function reply(Request $request, EntityInterface $entity, $comment_field_name, EntityInterface $parent = NULL) {
+    // The following lines are needed in addition to the copied code from
+    // Drupal\jsonapi\Controller\EntityResource::createIndividual. There is an
+    // additional code block further below as well.
     $this->blockUnsupportedQueryParameters($request);
+    $comment_field_storage_definition = FieldStorageConfig::loadByName($entity->getEntityTypeId(), $comment_field_name);
+    $comment_type = $comment_field_storage_definition->getSetting('comment_type');
+    $comment_resource_type = $this->resourceTypeRepository->get('comment', $comment_type);
+
     $parsed_entity = $this->deserialize($comment_resource_type, $request, JsonApiDocumentTopLevel::class);
 
     if ($parsed_entity instanceof FieldableEntityInterface) {
@@ -87,12 +94,12 @@ class JsonapiCommentsController extends EntityResource {
       }
     }
 
-    // This is the only part of this method which is not an exact copy of
+    // This is the other part of this method which is not an exact copy of
     // Drupal\jsonapi\Controller\EntityResource::createIndividual.
     // @todo: ensure that this can't be used to add a comment where commenting is not permitted.
     $parsed_entity->entity_type = $entity->getEntityTypeId();
     $parsed_entity->entity_id = $entity;
-    $parsed_entity->field_name = $request->get(Routes::COMMENT_FIELD_NAME_KEY);
+    $parsed_entity->field_name = $comment_field_name;
     if ($parent) {
       $parsed_entity->pid = $parent;
     }
@@ -135,7 +142,20 @@ class JsonapiCommentsController extends EntityResource {
     }
   }
 
-  protected static function getPagerLinks(Request $request, OffsetPage $page_param, array $link_context = []) {
+  /**
+   * Provides pagination links compatible with CommentStorage::loadThread().
+   *
+   * CommentStorage::loadThread() is incompatible with JSON:API's pagination
+   * query parameter syntax. This method generates the pagination links that
+   * *are* compatible with it.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   *
+   * @return \Drupal\jsonapi\JsonApiResource\LinkCollection
+   *   The pagination links.
+   */
+  protected static function getPaginationLinks(Request $request) {
     global $pager_total;
     // The pager element is always `0` because multiple pagers are not supported
     // via JSON:API.

@@ -9,7 +9,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\jsonapi\ParamConverter\ResourceTypeConverter;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Drupal\jsonapi\Routing\Routes as JsonapiRoutes;
-use Drupal\jsonapi_comments\Access\CommentFieldAccess;
+use Drupal\jsonapi_comments\ParamConverter\JsonApiCommentsEntityUuidConverter;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Route;
@@ -22,11 +22,12 @@ class Routes implements ContainerInjectionInterface {
 
   const CONTROLLER_SERVICE_NAME = 'jsonapi_comments.controller';
 
-  const COMMENT_FIELD_NAME_KEY = 'jsonapi_comments.comment_field_name';
-
-  const HOST_RESOURCE_TYPE_KEY = 'comment_host_resource_type';
-
-  const COMMENT_RESOURCE_TYPE_KEY = 'comment_resource_type';
+  /**
+   * The route defaults key for the route's associated comment field name.
+   *
+   * @var string
+   */
+  const COMMENT_FIELD_NAME_KEY = 'comment_field_name';
 
   /**
    * @var \Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface
@@ -97,41 +98,28 @@ class Routes implements ContainerInjectionInterface {
         $public_field_name = $host_resource_type->getPublicName($internal_field_name);
         $path = "{$host_resource_type->getPath()}/{entity}/{$public_field_name}";
         $read_route = new Route($path);
+        $read_route->addRequirements(['_permission' => 'view comments']);
         $read_route->setOption('parameters', [
-          JsonapiRoutes::RESOURCE_TYPE_KEY => ['type' => ResourceTypeConverter::PARAM_TYPE_ID],
-          static::HOST_RESOURCE_TYPE_KEY => ['type' => ResourceTypeConverter::PARAM_TYPE_ID],
-          static::COMMENT_RESOURCE_TYPE_KEY => ['type' => ResourceTypeConverter::PARAM_TYPE_ID],
-          'entity' => ['type' => 'entity:' . $host_resource_type->getEntityTypeId()],
+          'entity' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $host_resource_type->getEntityTypeId()],
         ]);
-        $read_route->addDefaults([
-          RouteObjectInterface::CONTROLLER_NAME => static::CONTROLLER_SERVICE_NAME . ':getComments',
-          JsonapiRoutes::RESOURCE_TYPE_KEY => $host_resource_type->getTypeName(),
-          static::HOST_RESOURCE_TYPE_KEY => $host_resource_type->getTypeName(),
-          static::COMMENT_RESOURCE_TYPE_KEY => $comment_resource_type->getTypeName(),
-          static::COMMENT_FIELD_NAME_KEY => $internal_field_name,
-        ]);
+        $read_route->setDefault(RouteObjectInterface::CONTROLLER_NAME, static::CONTROLLER_SERVICE_NAME . ':getComments');
+        $read_route->setDefault(static::COMMENT_FIELD_NAME_KEY, $internal_field_name);
         $read_route->setMethods(['GET']);
-        $read_route->setRequirement(CommentFieldAccess::ROUTE_REQUIREMENT_KEY, $internal_field_name);
         $routes->add("jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comments.{$public_field_name}", $read_route);
         $reply_route = new Route($path);
+        $reply_route->addRequirements(['_permission' => 'post comments']);
         $reply_route->setOption('parameters', [
-          JsonapiRoutes::RESOURCE_TYPE_KEY => ['type' => ResourceTypeConverter::PARAM_TYPE_ID],
-          static::HOST_RESOURCE_TYPE_KEY => ['type' => ResourceTypeConverter::PARAM_TYPE_ID],
-          static::COMMENT_RESOURCE_TYPE_KEY => ['type' => ResourceTypeConverter::PARAM_TYPE_ID],
-          'entity' => ['type' => 'entity:' . $host_resource_type->getEntityTypeId()],
+          'entity' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $host_resource_type->getEntityTypeId()],
         ]);
-        $reply_route->addDefaults([
-          RouteObjectInterface::CONTROLLER_NAME => static::CONTROLLER_SERVICE_NAME . ':reply',
-          JsonapiRoutes::RESOURCE_TYPE_KEY => $host_resource_type->getTypeName(),
-          static::HOST_RESOURCE_TYPE_KEY => $host_resource_type->getTypeName(),
-          static::COMMENT_RESOURCE_TYPE_KEY => $comment_resource_type->getTypeName(),
-          static::COMMENT_FIELD_NAME_KEY => $internal_field_name,
-        ]);
+        $reply_route->setDefault(RouteObjectInterface::CONTROLLER_NAME, static::CONTROLLER_SERVICE_NAME . ':reply');
+        $reply_route->setDefault(static::COMMENT_FIELD_NAME_KEY, $internal_field_name);
         $reply_route->setMethods(['POST']);
-        $reply_route->setRequirement(CommentFieldAccess::ROUTE_REQUIREMENT_KEY, $internal_field_name);
         $routes->add("jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comments.{$public_field_name}.reply", $reply_route);
         $child_reply_route = clone $reply_route;
         $child_reply_route->setPath("{$path}/{parent}/replies");
+        $child_reply_route->setOption('parameters', [
+          'parent' => ['type' => JsonApiCommentsEntityUuidConverter::PARAM_TYPE_NAME . ':' . $comment_resource_type->getEntityTypeId()],
+        ] + $child_reply_route->getOption('parameters'));
         $routes->add("jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comments.{$public_field_name}.child_reply", $child_reply_route);
       }
     }
