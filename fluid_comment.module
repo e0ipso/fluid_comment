@@ -11,7 +11,6 @@
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\EntityOwnerInterface;
 
@@ -42,13 +41,4 @@ function fluid_comment_comment_access(EntityInterface $entity, $operation, Accou
     default:
       return AccessResult::neutral();
   }
-}
-
-/**
- * Implements hook_jsonapi_ENTITY_TYPE_filter_access() for 'comment'.
- */
-function fluid_comment_jsonapi_comment_filter_access(EntityTypeInterface $entity_type, AccountInterface $account) {
-  return ([
-    JSONAPI_FILTER_AMONG_OWN => AccessResult::allowedIfHasPermission($account, 'access comments')->andIf(AccessResult::allowedIf(!$account->isAnonymous())->addCacheContexts(['user.roles:anonymous'])),
-  ]);
 }
