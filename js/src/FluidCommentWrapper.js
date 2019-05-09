@@ -88,7 +88,6 @@ class FluidCommentWrapper extends React.Component {
   }
 
   getAndAddComments(commentsUrl, previous = []) {
-
     getResponseDocument(commentsUrl).then(doc => {
       const data = getDeepProp(doc, 'data');
       const included = getDeepProp(doc, 'included');
@@ -99,9 +98,8 @@ class FluidCommentWrapper extends React.Component {
       if (nextUrl) {
         this.getAndAddComments(nextUrl, comments);
       }
-      else {
-        this.setState({ comments });
-      }
+
+      this.setState({ comments });
     });
   }
 
