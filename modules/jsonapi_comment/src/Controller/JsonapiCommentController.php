@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi_comments\Controller;
+namespace Drupal\jsonapi_comment\Controller;
 
 use Drupal\comment\CommentManagerInterface;
 use Drupal\Component\Serialization\Json;
@@ -29,7 +29,7 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
  *
  * @internal
  */
-class JsonapiCommentsController extends EntityResource {
+class JsonapiCommentController extends EntityResource {
 
   /**
    * Responds with a collection of comments.
@@ -188,7 +188,7 @@ class JsonapiCommentsController extends EntityResource {
       if ($request->query->has($unsupported_query_param)) {
         $cacheability = new CacheableMetadata();
         $cacheability->addCacheContexts(['url.path', "url.query_args:$unsupported_query_param"]);
-        $message = "The `$unsupported_query_param` query parameter is not yet supported by the JSON:API Comments module.";
+        $message = "The `$unsupported_query_param` query parameter is not yet supported by the JSON:API Comment module.";
         throw new CacheableBadRequestHttpException($cacheability, $message);
       }
     }

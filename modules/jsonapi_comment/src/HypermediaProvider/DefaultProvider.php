@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\jsonapi_comments\HypermediaProvider;
+namespace Drupal\jsonapi_comment\HypermediaProvider;
 
 use Drupal\comment\CommentFieldItemList;
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
@@ -80,7 +80,7 @@ class DefaultProvider implements HypermediaProviderInterface {
     }
     $public_field_name = $comment_object->getResourceType()->getPublicName($field_name);
     $host_resource_type = $this->resourceTypeRepository->get($host_entity->getEntityTypeId(), $host_entity->bundle());
-    $reply_route_name = "jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comments.{$public_field_name}.child_reply";
+    $reply_route_name = "jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comment.{$public_field_name}.child_reply";
     $reply_route_parameters = [
       'entity' => $host_entity->uuid(),
       'parent' => $comment_object->getId(),
@@ -109,7 +109,7 @@ class DefaultProvider implements HypermediaProviderInterface {
   protected function addCommentCollectionLink(ResourceObject $commented_resource_object, CommentFieldItemList $field, LinkCollection $link_collection) {
     $resource_type = $commented_resource_object->getResourceType();
     $comment_field_name = $field->getName();
-    $comment_route_name = "jsonapi.{$resource_type->getTypeName()}.jsonapi_comments.{$comment_field_name}";
+    $comment_route_name = "jsonapi.{$resource_type->getTypeName()}.jsonapi_comment.{$comment_field_name}";
     try {
       $comments_url = Url::fromRoute($comment_route_name, ['entity' => $commented_resource_object->getId()]);
     }

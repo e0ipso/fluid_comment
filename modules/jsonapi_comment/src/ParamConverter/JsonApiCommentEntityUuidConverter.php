@@ -1,26 +1,26 @@
 <?php
 
-namespace Drupal\jsonapi_comments\ParamConverter;
+namespace Drupal\jsonapi_comment\ParamConverter;
 
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\ParamConverter\ParamNotConvertedException;
 use Drupal\jsonapi\ParamConverter\EntityUuidConverter;
-use Drupal\jsonapi_comments\Routing\Routes;
+use Drupal\jsonapi_comment\Routing\Routes;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\Routing\Route;
 
 /**
- * Class JsonApiCommentsEntityUuidConverter.
+ * Class JsonApiCommentEntityUuidConverter.
  *
  * @internal
  */
-class JsonApiCommentsEntityUuidConverter extends EntityUuidConverter {
+class JsonApiCommentEntityUuidConverter extends EntityUuidConverter {
 
   /**
    * The param conversion definition type.
    */
-  const PARAM_TYPE_NAME = 'jsonapi_comments_entity_by_uuid';
+  const PARAM_TYPE_NAME = 'jsonapi_comment_entity_by_uuid';
 
   /**
    * {@inheritdoc}
