@@ -131,6 +131,10 @@ class JsonapiCommentController extends EntityResource {
     // This is the other part of this method which is not an exact copy of
     // Drupal\jsonapi\Controller\EntityResource::createIndividual.
     // @todo: ensure that this can't be used to add a comment where commenting is not permitted.
+    assert($parsed_entity instanceof CommentInterface);
+    if (!$parsed_entity->getOwnerId()) {
+      $parsed_entity->setOwnerId($this->user->id());
+    }
     $parsed_entity->entity_type = $commented_entity->getEntityTypeId();
     $parsed_entity->entity_id = $commented_entity;
     $parsed_entity->field_name = $comment_field_name;

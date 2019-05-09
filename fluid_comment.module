@@ -52,13 +52,3 @@ function fluid_comment_jsonapi_comment_filter_access(EntityTypeInterface $entity
     JSONAPI_FILTER_AMONG_OWN => AccessResult::allowedIfHasPermission($account, 'access comments')->andIf(AccessResult::allowedIf(!$account->isAnonymous())->addCacheContexts(['user.roles:anonymous'])),
   ]);
 }
-
-/**
- * Implements hook_ENTITY_TYPE_presave().
- */
-function fluid_comment_comment_presave(EntityInterface $entity) {
-  assert($entity instanceof EntityOwnerInterface);
-  if (!$entity->getOwnerId()) {
-    $entity->setOwnerId(\Drupal::currentUser()->id());
-  }
-}
