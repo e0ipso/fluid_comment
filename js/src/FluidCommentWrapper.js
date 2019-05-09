@@ -72,9 +72,9 @@ class FluidCommentWrapper extends React.Component {
 
       if (users.length > 0) {
         let user = users[0];
-        const pic = getDeepProp(user, 'relationships.user_picture');
+        const pic = getDeepProp(user, 'relationships.user_picture.data');
         if (pic) {
-          const pictures = included.filter(item => item.id === pic.data.id);
+          const pictures = included.filter(item => item.id === pic.id);
           if (pictures.length > 0) {
             user = Object.assign(user, { picture: pictures[0] });
           }
