@@ -82,8 +82,8 @@ class DefaultProvider implements HypermediaProviderInterface {
     $host_resource_type = $this->resourceTypeRepository->get($host_entity->getEntityTypeId(), $host_entity->bundle());
     $reply_route_name = "jsonapi.{$host_resource_type->getTypeName()}.jsonapi_comment.{$public_field_name}.child_reply";
     $reply_route_parameters = [
-      'entity' => $host_entity->uuid(),
-      'parent' => $comment_object->getId(),
+      'commented_entity' => $host_entity->uuid(),
+      'parent_comment' => $comment_object->getId(),
     ];
     $reply_url = Url::fromRoute($reply_route_name, $reply_route_parameters);
     $cacheability = CacheableMetadata::createFromObject($host_entity)->addCacheableDependency($comment_object);
@@ -111,7 +111,7 @@ class DefaultProvider implements HypermediaProviderInterface {
     $comment_field_name = $field->getName();
     $comment_route_name = "jsonapi.{$resource_type->getTypeName()}.jsonapi_comment.{$comment_field_name}";
     try {
-      $comments_url = Url::fromRoute($comment_route_name, ['entity' => $commented_resource_object->getId()]);
+      $comments_url = Url::fromRoute($comment_route_name, ['commented_entity' => $commented_resource_object->getId()]);
     }
     catch (RouteNotFoundException $e) {
       return $link_collection;

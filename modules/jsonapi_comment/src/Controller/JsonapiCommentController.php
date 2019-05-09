@@ -36,7 +36,7 @@ class JsonapiCommentController extends EntityResource {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
-   * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
+   * @param \Drupal\Core\Entity\FieldableEntityInterface $commented_entity
    *   The commented entity.
    * @param string $comment_field_name
    *   The comment field for which to serve comments.
@@ -47,16 +47,16 @@ class JsonapiCommentController extends EntityResource {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function getComments(Request $request, FieldableEntityInterface $entity, $comment_field_name) {
+  public function getComments(Request $request, FieldableEntityInterface $commented_entity, $comment_field_name) {
     $this->blockUnsupportedQueryParameters($request);
-    $resource_object = $this->entityAccessChecker->getAccessCheckedResourceObject($entity);
+    $resource_object = $this->entityAccessChecker->getAccessCheckedResourceObject($commented_entity);
     if ($resource_object instanceof EntityAccessDeniedHttpException) {
       throw $resource_object;
     }
     $comment_storage = $this->entityTypeManager->getStorage('comment');
-    $per_page = (int) $entity->get($comment_field_name)->getFieldDefinition()->getSetting('per_page');
+    $per_page = (int) $commented_entity->get($comment_field_name)->getFieldDefinition()->getSetting('per_page');
     assert($comment_storage instanceof CommentStorageInterface);
-    $comments = $comment_storage->loadThread($entity, $comment_field_name, CommentManagerInterface::COMMENT_MODE_FLAT, $per_page, 0);
+    $comments = $comment_storage->loadThread($commented_entity, $comment_field_name, CommentManagerInterface::COMMENT_MODE_FLAT, $per_page, 0);
     $resource_objects = array_map(function (CommentInterface $comment) {
       return $this->entityAccessChecker->getAccessCheckedResourceObject($comment);
     }, $comments);
