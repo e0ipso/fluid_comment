@@ -1,0 +1,9 @@
+name: JSON:API Comment
+type: module
+description: Provides routes and links that enhance comments over JSON:API
+package: Core
+core: 8.x
+dependencies:
+  - drupal:comment
+  - drupal:jsonapi
+  - drupal:jsonapi_hypermedia
