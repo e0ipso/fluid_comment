@@ -27,7 +27,7 @@ class FluidCommentWrapper extends React.Component {
   };
 
   render() {
-    const { commentsUrl, currentNode, loginUrl, commentType } = this.props;
+    const { currentNode, loginUrl, commentType } = this.props;
     const { comments, loggedIn, isRefreshing } = this.state;
 
     return (
