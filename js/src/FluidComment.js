@@ -1,8 +1,8 @@
 'use strict';
 
 import React from 'react';
-import FluidCommentContent from './FluidCommentContent'
-import FluidCommentAction from './FluidCommentAction'
+import FluidCommentContent from './FluidCommentContent';
+import FluidCommentAction from './FluidCommentAction';
 import { getDeepProp, getResponseDocument } from './functions.js';
 import { getMethodsFromRel } from './routes.js';
 
