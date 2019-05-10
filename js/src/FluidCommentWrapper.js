@@ -1,6 +1,7 @@
 'use strict';
 import React from 'react';
 import { getDeepProp, getResponseDocument } from './functions';
+import { getRelUri, objectHasLinkWithRel } from './routes';
 import FluidComment from './FluidComment';
 import FluidCommentForm from './FluidCommentForm';
 import InlineLoginForm from "./InlineLoginForm";
@@ -20,21 +21,13 @@ class FluidCommentWrapper extends React.Component {
     this.refreshComments();
   }
 
-  filteredCommentsUrl() {
-    const { hostId, commentsUrl } = this.props;
-    const id = 'entity_id.id';
-    const include = 'uid.user_picture';
-
-    return `${commentsUrl}/?filter[${id}]=${hostId}&include=${include}`;
-  }
-
   onLogin = (success) => {
     this.setState({loggedIn: !!success});
     this.refreshComments();
   };
 
   render() {
-    const { commentsUrl, currentNode, loginUrl, commentType } = this.props;
+    const { currentNode, loginUrl, commentType } = this.props;
     const { comments, loggedIn, isRefreshing } = this.state;
 
     return (
@@ -58,7 +51,7 @@ class FluidCommentWrapper extends React.Component {
               onLogin={this.onLogin}
             />
           </div>
-        : <div>
+        : objectHasLinkWithRel(currentNode, 'comments', getRelUri('add')) && <div>
             <h2 className="title comment-form__title">Add new comment</h2>
             <FluidCommentForm
               key="commentForm"
@@ -75,7 +68,9 @@ class FluidCommentWrapper extends React.Component {
   }
 
   refreshComments() {
-    this.getAndAddComments(this.filteredCommentsUrl());
+    if (objectHasLinkWithRel(this.props.currentNode, 'comments', getRelUri('collection'))) {
+      this.getAndAddComments(`${this.props.currentNode.links.comments.href}/?include=uid.user_picture`);
+    }
   }
 
   /**
@@ -105,7 +100,6 @@ class FluidCommentWrapper extends React.Component {
   }
 
   getAndAddComments(commentsUrl, previous = []) {
-
     this.setState({ isRefreshing: true });
 
     getResponseDocument(commentsUrl).then(doc => {
