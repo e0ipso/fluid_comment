@@ -7,24 +7,56 @@ class FluidCommentForm extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {subjectField: '', bodyField: ''};
+    this.state = {
+      subjectField: '',
+      bodyField: ''
+    };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   render() {
+    const { isRefreshing } = this.props;
+    const { subjectField, bodyField } = this.state;
+
     return (
-        <form onSubmit={this.handleSubmit}>
-          <label>
-            Subject:&nbsp;
-            <input type="text" name="subjectField" value={this.state.subjectField} onChange={this.handleChange} />
-          </label>
-          <label>
-            Body:&nbsp;
-            <input type="text" name="bodyField" value={this.state.bodyField} onChange={this.handleChange} />
-          </label>
-          <input type="submit" value="Post Comment" />
+      <div>
+        <form className="comment-comment-form comment-form" onSubmit={this.handleSubmit}>
+          <div className="form-item">
+            <label for="subjectField">Subject</label>
+            <input
+              type="text"
+              name="subjectField"
+              className="form-text"
+              value={subjectField}
+              onChange={this.handleChange}
+            />
+          </div>
+          <div className="text-format-wrapper form-item">
+            <div className="form-type-textarea form-item">
+              <label for="bodyField" className="form-required">Body</label>
+              <div className="form-textarea-wrapper">
+                <textarea
+                  type="text"
+                  name="bodyField"
+                  className="form-textarea required resize-vertical"
+                  data-editor-active-text-format="basic_html"
+                  value={bodyField}
+                  onChange={this.handleChange}
+                />
+            </div>
+          </div>
+          </div>
+          <div className="form-actions">
+            <input
+              className={`button ${isRefreshing && 'is-disabled'}`}
+              type="submit"
+              value="Post Comment"
+              disabled={isRefreshing}
+            />
+          </div>
         </form>
+      </div>
     );
   }
 

@@ -1,7 +1,8 @@
 'use strict';
 
 import React from 'react';
-import FluidCommentLink from './FluidCommentLink'
+import FluidCommentContent from './FluidCommentContent';
+import FluidCommentAction from './FluidCommentAction';
 import { getDeepProp, getResponseDocument } from './functions.js';
 import { getMethodsFromRel } from './routes.js';
 
@@ -64,10 +65,14 @@ class FluidComment extends React.Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      action: null
+    }
   }
 
   render() {
-    const { comment } = this.props;
+    const { comment, isRefreshing } = this.props;
+    const { action } = this.state;
 
     const subject = getDeepProp(comment, 'attributes.subject');
     const body = getDeepProp(comment, 'attributes.comment_body.processed');
@@ -109,28 +114,27 @@ class FluidComment extends React.Component {
             <p className="comment__permalink">permalink</p>
             <p className="visually-hidden">parent</p>
           </footer>
-          <div className="comment__content">
-            <h3>{ subject }</h3>
-            <div
-              className={classes.content.join(' ')}
-              dangerouslySetInnerHTML={{__html: body}}>
-            </div>
-            {links && <ul className="links inline">
-              {links.map(link => (
-                <li key={`${comment.id}-${link.className}`} className={link.className}>
-                  <FluidCommentLink link={link} handleClick={(e) => this.commentAction(e, link)} />
-                </li>
-              ))}
-            </ul>}
-
-          </div>
+          {action !== null
+            ? <FluidCommentAction
+                title={action.title}
+                confirm={this.commentConfirm}
+                cancel={this.commentCancel}
+              />
+            : <FluidCommentContent
+                id={comment.id}
+                subject={subject}
+                body={body}
+                classes={classes}
+                links={links}
+                action={this.commentAction}
+              />}
         </article>
     );
   }
 
-  commentAction = (event, link) => {
-    event.preventDefault();
-    const { href, data, options } = link;
+  commentConfirm = () => {
+    const { refresh } = this.props;
+    const { href, data, options } = this.state.action;
 
     if (Object.keys(data).length) {
       options.body = JSON.stringify({ data });
@@ -138,9 +142,28 @@ class FluidComment extends React.Component {
 
     getResponseDocument(href, options).then(() => {
       // console.log(`Called ${link.title} with ${options.method} for ${href}`);
-      this.props.refresh();
+      this.setState({ action: null });
+      refresh();
     });
+  };
+
+  commentCancel = () => {
+    this.setState({ action: null })
+  };
+
+  commentAction = (event, link) => {
+    const { isRefreshing } = this.props;
+
+    event.preventDefault();
+
+    if (isRefreshing) {
+      return;
+    }
+
+    // Copy link to avoid affecting it when resetting state.
+    this.setState({ action: Object.assign({}, link) });
   }
+
 }
 
 export default FluidComment;
