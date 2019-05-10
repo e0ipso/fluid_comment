@@ -28,14 +28,18 @@ class FluidCommentWrapper extends React.Component {
     return `${commentsUrl}/?filter[${id}]=${hostId}&include=${include}`;
   }
 
+  onLogin = (success) => {
+    this.setState({loggedIn: !!success});
+    this.refreshComments();
+  };
+
   render() {
-    const content = [];
     const { commentsUrl, currentNode, loginUrl, commentType } = this.props;
     const { comments, loggedIn, isRefreshing } = this.state;
 
-    if (comments.length) {
-
-      content.push(comments.map((comment, index) => (
+    return (
+      <div>
+      {comments.map((comment, index) => (
         <FluidComment
           key={comment.id}
           index={index}
@@ -43,35 +47,31 @@ class FluidCommentWrapper extends React.Component {
           refresh={() => this.refreshComments()}
           isRefreshing={isRefreshing}
         />
-      )));
-    }
+      ))}
 
-    if (loggedIn === false) {
-      const onLogin = (success) => {
-        this.setState({loggedIn: !!success});
-        this.refreshComments();
-      };
-
-      content.push((
-        <div>
-          <h3>Log in to comment:</h3>
-          <InlineLoginForm key="loginForm" loginUrl={loginUrl} onLogin={onLogin} />
-        </div>
-      ));
-    }
-    else if (currentNode) {
-      content.push((
-        <FluidCommentForm
-          key="commentForm"
-          commentTarget={currentNode}
-          commentType={commentType}
-          commentsUrl={commentsUrl}
-          onSubmit={() => this.refreshComments()}
-          isRefreshing={isRefreshing}
-        />
-      ));
-    }
-    return content;
+      {loggedIn === false
+        ? <div>
+            <h2 className="title comment-form__title">Log in to comment</h2>
+            <InlineLoginForm
+              key="loginForm"
+              loginUrl={loginUrl}
+              onLogin={this.onLogin}
+            />
+          </div>
+        : <div>
+            <h2 className="title comment-form__title">Add new comment</h2>
+            <FluidCommentForm
+              key="commentForm"
+              commentTarget={currentNode}
+              commentType={commentType}
+              commentsUrl={commentsUrl}
+              onSubmit={() => this.refreshComments()}
+              isRefreshing={isRefreshing}
+            />
+          </div>
+      }
+      </div>
+    );
   }
 
   refreshComments() {

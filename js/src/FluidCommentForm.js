@@ -21,7 +21,6 @@ class FluidCommentForm extends React.Component {
 
     return (
       <div>
-        <h2 className="title comment-form__title">Add new comment</h2>
         <form className="comment-comment-form comment-form" onSubmit={this.handleSubmit}>
           <div className="form-item">
             <label for="subjectField">Subject</label>

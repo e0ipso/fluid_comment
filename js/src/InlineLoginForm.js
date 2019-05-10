@@ -14,15 +14,21 @@ class InlineLoginForm extends React.Component {
   render() {
     return (
         <form onSubmit={this.handleSubmit}>
-          <label>
-            Username:&nbsp;
+          <div className="form-item">
+            <label for="nameField">Username</label>
             <input type="text" name="nameField" value={this.state.nameField} onChange={this.handleChange} />
-          </label>
-          <label>
-            Password:&nbsp;
+          </div>
+          <div className="form-item">
+            <label for="passField">Password</label>
             <input type="password" name="passField" value={this.state.passField} onChange={this.handleChange} />
-          </label>
-          <input type="submit" value="Log In" />
+          </div>
+          <div className="form-actions">
+          <input
+            type="submit"
+            value="Log In"
+            className={`button`}
+          />
+          </div>
         </form>
     );
   }
