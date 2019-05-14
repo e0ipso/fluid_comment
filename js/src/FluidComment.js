@@ -71,7 +71,7 @@ class FluidComment extends React.Component {
   }
 
   render() {
-    const { comment, isRefreshing } = this.props;
+    const { comment, isRefreshing, children } = this.props;
     const { action } = this.state;
 
     const subject = getDeepProp(comment, 'attributes.subject');
@@ -105,6 +105,7 @@ class FluidComment extends React.Component {
     };
 
     return (
+      <div>
         <article role="article" className={classes.article.join(' ')}>
           <span className="hidden" data-comment-timestamp="{{ new_indicator_timestamp }}"></span>
           <footer className="comment__meta">
@@ -129,6 +130,8 @@ class FluidComment extends React.Component {
                 action={this.commentAction}
               />}
         </article>
+        {children && <div class="indented">{children}</div>}
+      </div>
     );
   }
 

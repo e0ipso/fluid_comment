@@ -28,21 +28,14 @@ class FluidCommentWrapper extends React.Component {
 
   render() {
     const { currentNode, loginUrl, commentType } = this.props;
+    const threaded = true;
     const { comments, loggedIn, isRefreshing } = this.state;
     const addLink = getRelUri('add');
     const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);
 
     return (
       <div>
-      {comments.map((comment, index) => (
-        <FluidComment
-          key={comment.id}
-          index={index}
-          comment={comment}
-          refresh={() => this.refreshComments()}
-          isRefreshing={isRefreshing}
-        />
-      ))}
+      {threaded ? this.renderThreaded(comments) : this.renderFlat(comments)}
 
       {loggedIn === false
         ? <div>
@@ -66,6 +59,69 @@ class FluidCommentWrapper extends React.Component {
       }
       </div>
     );
+  }
+
+  renderThreaded(comments) {
+    const { isRefreshing } = this.state;
+    const stack = [];
+    const rendered = [];
+    const prerender = function (comment, index) {
+      return (children) => {
+        return <FluidComment key={comment.id} index={index} comment={comment} refresh={() => this.refreshComments()} isRefreshing={isRefreshing}>{children}</FluidComment>;
+      };
+    };
+    for (var i = 0; i < comments.length; i++) {
+      const current = {id: comments[i].id, render: prerender(comments[i], i), children: []};
+      const parent = getDeepProp(comments[i], 'relationships.pid.data.id');
+      if (i === 0) {
+        stack.push(current);
+      }
+      else if (!parent) {
+        let item, last = null;
+        while (item = stack.pop()) {
+          if (last !== null) {
+            item.children.push(last);
+          }
+          last = item.render(item.children);
+        }
+        rendered.push(last);
+        stack.push(current);
+      }
+      else {
+        let item, last = null;
+        while (item = stack.pop()) {
+          if (last !== null) {
+            item.children.push(last);
+          }
+          if (parent !== item.id) {
+            last = item.render(item.children);
+          }
+          else {
+            stack.push(item);
+            break;
+          }
+        }
+        stack.push(current);
+      }
+      if (i === comments.length - 1) {
+        let item, last = null;
+        while (item = stack.pop()) {
+          if (last !== null) {
+            item.children.push(last);
+          }
+          last = item.render(item.children);
+        }
+        rendered.push(last);
+      }
+    }
+    return rendered;
+  }
+
+  renderFlat(comments) {
+    const { isRefreshing } = this.state;
+    return comments.map((comment, index) => (
+      <FluidComment key={comment.id} index={index} comment={comment} refresh={() => this.refreshComments()} isRefreshing={isRefreshing} />
+    ));
   }
 
   refreshComments() {
