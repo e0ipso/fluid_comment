@@ -27,8 +27,7 @@ class FluidCommentWrapper extends React.Component {
   };
 
   render() {
-    const { currentNode, loginUrl, commentType } = this.props;
-    const threaded = true;
+    const { currentNode, loginUrl, commentType, threaded } = this.props;
     const { comments, loggedIn, isRefreshing } = this.state;
     const addLink = getRelUri('add');
     const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);

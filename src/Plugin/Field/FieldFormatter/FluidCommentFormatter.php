@@ -80,6 +80,7 @@ class FluidCommentFormatter extends CommentDefaultFormatter {
         '#comment_target_type' => $host_type_name,
         '#comment_target_id' => $host_id,
         '#comment_type' => $comment_type_name,
+        '#comment_display_mode' => $this->getFieldSetting('default_mode'),
         '#attached' => [
           'library' => [
             'fluid_comment/reactjs',
