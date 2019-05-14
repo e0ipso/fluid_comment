@@ -68,28 +68,31 @@ class FluidCommentFormatter extends CommentDefaultFormatter {
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
     $elements = parent::viewElements($items, $langcode);
-    $host_entity = $items->getEntity();
-    $host_type = $this->resourceTypeRepository->get($host_entity->getEntityTypeId(), $host_entity->bundle());
-    $host_type_name = $host_type->getTypeName();
-    $host_id = $host_entity->uuid();
-    $comment_type_name = $this->resourceTypeRepository->get('comment', $items->getFieldDefinition()->getItemDefinition()->getSetting('comment_type'))->getTypeName();
-    $elements[0]['comments'] = [[
-      '#theme' => 'fluid_comment_formatter',
-      '#comment_target_type' => $host_type_name,
-      '#comment_target_id' => $host_id,
-      '#comment_type' => $comment_type_name,
-      '#attached' => [
-        'library' => [
-          'fluid_comment/reactjs',
-          'fluid_comment/fluid_comment',
+    // If $elements is empty, comments aren't intended to be shown.
+    if (!empty($elements)) {
+      $host_entity = $items->getEntity();
+      $host_type = $this->resourceTypeRepository->get($host_entity->getEntityTypeId(), $host_entity->bundle());
+      $host_type_name = $host_type->getTypeName();
+      $host_id = $host_entity->uuid();
+      $comment_type_name = $this->resourceTypeRepository->get('comment', $items->getFieldDefinition()->getItemDefinition()->getSetting('comment_type'))->getTypeName();
+      $elements[0]['comments'] = [[
+        '#theme' => 'fluid_comment_formatter',
+        '#comment_target_type' => $host_type_name,
+        '#comment_target_id' => $host_id,
+        '#comment_type' => $comment_type_name,
+        '#attached' => [
+          'library' => [
+            'fluid_comment/reactjs',
+            'fluid_comment/fluid_comment',
+          ],
         ],
-      ],
-    ]];
-    $elements[0]['comment_form'] = [];
-    // Attach Text Editor module's (this module) library.
-    $elements[0]['comments'][0]['#attached']['library'][] = 'editor/drupal.editor';
-    // Attach attachments for all available editors.
-    $elements[0]['comments'][0]['#attached'] = BubbleableMetadata::mergeAttachments($elements[0]['comments'][0]['#attached'], $this->editorManager->getAttachments(array_keys(filter_formats())));
+      ]];
+      $elements[0]['comment_form'] = [];
+      // Attach Text Editor module's (this module) library.
+      $elements[0]['comments'][0]['#attached']['library'][] = 'editor/drupal.editor';
+      // Attach attachments for all available editors.
+      $elements[0]['comments'][0]['#attached'] = BubbleableMetadata::mergeAttachments($elements[0]['comments'][0]['#attached'], $this->editorManager->getAttachments(array_keys(filter_formats())));
+    }
     return $elements;
   }
 
