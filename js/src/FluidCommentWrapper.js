@@ -29,6 +29,8 @@ class FluidCommentWrapper extends React.Component {
   render() {
     const { currentNode, loginUrl, commentType } = this.props;
     const { comments, loggedIn, isRefreshing } = this.state;
+    const addLink = getRelUri('add');
+    const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);
 
     return (
       <div>
@@ -51,13 +53,12 @@ class FluidCommentWrapper extends React.Component {
               onLogin={this.onLogin}
             />
           </div>
-        : objectHasLinkWithRel(currentNode, 'comments', getRelUri('add')) && <div>
+        : hasLink && <div>
             <h2 className="title comment-form__title">Add new comment</h2>
             <FluidCommentForm
               key="commentForm"
               commentTarget={currentNode}
               commentType={commentType}
-              commentsUrl={commentsUrl}
               onSubmit={() => this.refreshComments()}
               isRefreshing={isRefreshing}
             />
