@@ -119,7 +119,7 @@ class Routes implements ContainerInjectionInterface {
         $public_field_name = $host_resource_type->getPublicName($internal_field_name);
         $path = "{$host_resource_type->getPath()}/{commented_entity}/{$public_field_name}";
         $read_route = new Route($path);
-        $read_route->addRequirements(['_permission' => 'view comments']);
+        $read_route->addRequirements(['_permission' => 'access comments']);
         $read_route->setOption('parameters', [
           'commented_entity' => ['type' => JsonApiCommentEntityUuidConverter::PARAM_TYPE_NAME . ':' . $host_resource_type->getEntityTypeId()],
         ]);
