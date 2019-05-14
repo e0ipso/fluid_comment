@@ -63,57 +63,43 @@ class FluidCommentWrapper extends React.Component {
 
   renderThreaded(comments) {
     const { isRefreshing } = this.state;
-    const stack = [];
     const rendered = [];
-    const prerender = function (comment, index) {
-      return (children) => {
-        return <FluidComment key={comment.id} index={index} comment={comment} refresh={() => this.refreshComments()} isRefreshing={isRefreshing}>{children}</FluidComment>;
-      };
-    };
-    for (var i = 0; i < comments.length; i++) {
-      const current = {id: comments[i].id, render: prerender(comments[i], i), children: []};
-      const parent = getDeepProp(comments[i], 'relationships.pid.data.id');
-      if (i === 0) {
-        stack.push(current);
-      }
-      else if (!parent) {
-        let item, last = null;
-        while (item = stack.pop()) {
-          if (last !== null) {
-            item.children.push(last);
-          }
+    let stack = [];
+    const destack = (stack, current) => {
+      let item, last = null;
+      while (item = stack.pop()) {
+        if (last !== null) {
+          item.children.push(last);
+        }
+        if (!current || !current.parentId || current.parentId !== item.id) {
           last = item.render(item.children);
         }
-        rendered.push(last);
-        stack.push(current);
-      }
-      else {
-        let item, last = null;
-        while (item = stack.pop()) {
-          if (last !== null) {
-            item.children.push(last);
-          }
-          if (parent !== item.id) {
-            last = item.render(item.children);
-          }
-          else {
-            stack.push(item);
-            break;
-          }
+        else {
+          stack.push(item);
+          break;
         }
-        stack.push(current);
       }
-      if (i === comments.length - 1) {
-        let item, last = null;
-        while (item = stack.pop()) {
-          if (last !== null) {
-            item.children.push(last);
-          }
-          last = item.render(item.children);
-        }
+      if (!current || !current.parentId) {
         rendered.push(last);
       }
+      return stack;
     }
+    for (var i = 0; i < comments.length; i++) {
+      const comment = comments[i];
+      const current = {
+        id: comments[i].id,
+        parentId: getDeepProp(comments[i], 'relationships.pid.data.id'),
+        render: (children) => {
+          return <FluidComment key={comment.id} index={i} comment={comment} refresh={() => this.refreshComments()} isRefreshing={isRefreshing}>{children}</FluidComment>;
+        },
+        children: [],
+      };
+      if (i > 0)  {
+        stack = destack(stack, current);
+      }
+      stack.push(current);
+    }
+    destack(stack);
     return rendered;
   }
 
