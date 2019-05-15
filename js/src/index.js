@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const hostType = domContainer.getAttribute('data-jsonapi-comment-target-type');
     const hostId = domContainer.getAttribute('data-jsonapi-comment-target-id');
     const commentType = domContainer.getAttribute('data-jsonapi-comment-type');
-    const threaded = (domContainer.getAttribute('data-fluid-comment-threaded') == 1);
-    render(<FluidCommentWidget commentType={commentType} hostType={hostType} hostId={hostId} threaded={threaded} />, domContainer);
+    render(<FluidCommentWidget commentType={commentType} hostType={hostType} hostId={hostId} />, domContainer);
   }
 });

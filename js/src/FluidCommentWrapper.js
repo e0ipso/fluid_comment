@@ -13,7 +13,8 @@ class FluidCommentWrapper extends React.Component {
     this.state = {
       loggedIn: this.props.loginUrl ? false : null,
       comments: [],
-      isRefreshing: false
+      isRefreshing: false,
+      threaded: false,
     };
   }
 
@@ -27,8 +28,8 @@ class FluidCommentWrapper extends React.Component {
   };
 
   render() {
-    const { currentNode, loginUrl, commentType, threaded } = this.props;
-    const { comments, loggedIn, isRefreshing } = this.state;
+    const { currentNode, loginUrl, commentType } = this.props;
+    const { comments, loggedIn, isRefreshing, threaded } = this.state;
     const addLink = getRelUri('add');
     const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);
 
@@ -161,6 +162,7 @@ class FluidCommentWrapper extends React.Component {
     this.setState({ isRefreshing: true });
 
     getResponseDocument(commentsUrl).then(doc => {
+      this.setState({threaded: getDeepProp(doc, 'meta.displayOptions.threaded')});
       const data = getDeepProp(doc, 'data');
       const included = getDeepProp(doc, 'included');
       const nextUrl = getDeepProp(doc, 'links.next.href');

@@ -34,7 +34,6 @@ class FluidCommentWidget extends React.Component {
                 commentType={this.props.commentType}
                 currentNode={this.state.currentNode}
                 hostId={this.props.hostId}
-                threaded={this.props.threaded}
             />}
         </div>
     }
