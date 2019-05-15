@@ -137,7 +137,7 @@ class DefaultProvider implements HypermediaProviderInterface {
     $link_relations = [];
     $view_access = AccessResult::allowedIfHasPermission($this->currentUser, 'access comments');
     $link_collection = $this->withLinkCollectionCacheability($link_collection, $view_access);
-    if ($field->status != CommentItemInterface::HIDDEN || !$view_access->isAllowed()) {
+    if ($field->status != CommentItemInterface::HIDDEN && $view_access->isAllowed()) {
       $link_relations[] = 'collection';
     }
     $post_access = AccessResult::allowedIfHasPermission($this->currentUser, 'post comments');
