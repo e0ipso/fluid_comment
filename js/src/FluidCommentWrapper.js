@@ -13,7 +13,8 @@ class FluidCommentWrapper extends React.Component {
     this.state = {
       loggedIn: this.props.loginUrl ? false : null,
       comments: [],
-      isRefreshing: false
+      isRefreshing: false,
+      threaded: false,
     };
   }
 
@@ -28,21 +29,13 @@ class FluidCommentWrapper extends React.Component {
 
   render() {
     const { currentNode, loginUrl, commentType } = this.props;
-    const { comments, loggedIn, isRefreshing } = this.state;
+    const { comments, loggedIn, isRefreshing, threaded } = this.state;
     const addLink = getRelUri('add');
     const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);
 
     return (
       <div>
-      {comments.map((comment, index) => (
-        <FluidComment
-          key={comment.id}
-          index={index}
-          comment={comment}
-          refresh={() => this.refreshComments()}
-          isRefreshing={isRefreshing}
-        />
-      ))}
+      {threaded ? this.renderThreaded(comments) : this.renderFlat(comments)}
 
       {loggedIn === false
         ? <div>
@@ -66,6 +59,71 @@ class FluidCommentWrapper extends React.Component {
       }
       </div>
     );
+  }
+
+  renderThreaded(comments) {
+    const { isRefreshing } = this.state;
+    const rendered = [];
+    let stack = [];
+    const destack = (stack, current) => {
+      let item, last = null;
+      while (item = stack.pop()) {
+        if (last !== null) {
+          item.children.push(last);
+        }
+        if (!current || !current.parentId || current.parentId !== item.id) {
+          last = item.render(item.children);
+        }
+        else {
+          stack.push(item);
+          break;
+        }
+      }
+      if (!current || !current.parentId) {
+        rendered.push(last);
+      }
+      return stack;
+    }
+    for (var i = 0; i < comments.length; i++) {
+      const comment = comments[i];
+      const current = {
+        id: comments[i].id,
+        parentId: getDeepProp(comments[i], 'relationships.pid.data.id'),
+        render: (children) => {
+          return (
+              <FluidComment
+                  key={comment.id}
+                  index={i}
+                  comment={comment}
+                  refresh={() => this.refreshComments()}
+                  isRefreshing={isRefreshing}
+              >
+                {children}
+              </FluidComment>
+          );
+        },
+        children: [],
+      };
+      if (i > 0)  {
+        stack = destack(stack, current);
+      }
+      stack.push(current);
+    }
+    destack(stack);
+    return rendered;
+  }
+
+  renderFlat(comments) {
+    const { isRefreshing } = this.state;
+    return comments.map((comment, index) => (
+      <FluidComment
+          key={comment.id}
+          index={index}
+          comment={comment}
+          refresh={() => this.refreshComments()}
+          isRefreshing={isRefreshing}
+      />
+    ));
   }
 
   refreshComments() {
@@ -104,6 +162,7 @@ class FluidCommentWrapper extends React.Component {
     this.setState({ isRefreshing: true });
 
     getResponseDocument(commentsUrl).then(doc => {
+      this.setState({threaded: getDeepProp(doc, 'meta.displayOptions.threaded')});
       const data = getDeepProp(doc, 'data');
       const included = getDeepProp(doc, 'included');
       const nextUrl = getDeepProp(doc, 'links.next.href');

@@ -54,9 +54,11 @@ class JsonapiCommentController extends EntityResource {
       throw $resource_object;
     }
     $comment_storage = $this->entityTypeManager->getStorage('comment');
-    $per_page = (int) $commented_entity->get($comment_field_name)->getFieldDefinition()->getSetting('per_page');
+    $comment_field_definition = $commented_entity->get($comment_field_name)->getFieldDefinition();
+    $default_mode = (int) $comment_field_definition->getSetting('default_mode');
+    $per_page = (int) $comment_field_definition->getSetting('per_page');
     assert($comment_storage instanceof CommentStorageInterface);
-    $comments = $comment_storage->loadThread($commented_entity, $comment_field_name, CommentManagerInterface::COMMENT_MODE_FLAT, $per_page, 0);
+    $comments = $comment_storage->loadThread($commented_entity, $comment_field_name, $default_mode, $per_page, 0);
     $resource_objects = array_map(function (CommentInterface $comment) {
       return $this->entityAccessChecker->getAccessCheckedResourceObject($comment);
     }, $comments);
@@ -67,7 +69,12 @@ class JsonapiCommentController extends EntityResource {
       $this->getIncludes($request, $primary_data),
       Response::HTTP_OK,
       [],
-      static::getPaginationLinks($request)
+      static::getPaginationLinks($request),
+      [
+        'displayOptions' => [
+          'threaded' => $default_mode === CommentManagerInterface::COMMENT_MODE_THREADED,
+        ],
+      ]
     );
   }
 
