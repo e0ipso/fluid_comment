@@ -225,7 +225,7 @@ class JsonapiCommentController extends EntityResource {
     if ($current_page < $pager_total[$element] - 1) {
       $next_url = static::getRequestLink($request, ['page' => $current_page + 1] + $default_query);
       $pager_links = $pager_links->withLink('next', new Link(new CacheableMetadata(), $next_url, ['next']));
-      $last_url = static::getRequestLink($request, ['page' => $pager_total[$element]]);
+      $last_url = static::getRequestLink($request, ['page' => $pager_total[$element] - 1]);
       $pager_links = $pager_links->withLink('last', new Link(new CacheableMetadata(), $last_url, ['last']));
     }
     if ($current_page > 0) {
