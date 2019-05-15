@@ -105,7 +105,7 @@ class FluidComment extends React.Component {
     };
 
     return (
-      <div>
+      <React.Fragment>
         <article role="article" className={classes.article.join(' ')}>
           <span className="hidden" data-comment-timestamp="{{ new_indicator_timestamp }}"></span>
           <footer className="comment__meta">
@@ -130,8 +130,8 @@ class FluidComment extends React.Component {
                 action={this.commentAction}
               />}
         </article>
-        {children && <div class="indented">{children}</div>}
-      </div>
+        {children.length ? <div class="indented">{children}</div> : null}
+      </React.Fragment>
     );
   }
 

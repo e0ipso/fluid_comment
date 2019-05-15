@@ -89,7 +89,17 @@ class FluidCommentWrapper extends React.Component {
         id: comments[i].id,
         parentId: getDeepProp(comments[i], 'relationships.pid.data.id'),
         render: (children) => {
-          return <FluidComment key={comment.id} index={i} comment={comment} refresh={() => this.refreshComments()} isRefreshing={isRefreshing}>{children}</FluidComment>;
+          return (
+              <FluidComment
+                  key={comment.id}
+                  index={i}
+                  comment={comment}
+                  refresh={() => this.refreshComments()}
+                  isRefreshing={isRefreshing}
+              >
+                {children}
+              </FluidComment>
+          );
         },
         children: [],
       };
@@ -105,7 +115,13 @@ class FluidCommentWrapper extends React.Component {
   renderFlat(comments) {
     const { isRefreshing } = this.state;
     return comments.map((comment, index) => (
-      <FluidComment key={comment.id} index={index} comment={comment} refresh={() => this.refreshComments()} isRefreshing={isRefreshing} />
+      <FluidComment
+          key={comment.id}
+          index={index}
+          comment={comment}
+          refresh={() => this.refreshComments()}
+          isRefreshing={isRefreshing}
+      />
     ));
   }
 
