@@ -5,7 +5,9 @@ services:
 
   jsonapi_comment.jsonapi_hypermedia_provider:
     class: Drupal\jsonapi_comment\HypermediaProvider\DefaultProvider
-    arguments: ['@jsonapi.resource_type.repository']
+    arguments:
+      - '@jsonapi.resource_type.repository'
+      - '@current_user'
     tags:
       - { name: jsonapi_hypermedia_provider, priority: 0 }
 
