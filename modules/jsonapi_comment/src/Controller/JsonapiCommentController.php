@@ -222,7 +222,7 @@ class JsonapiCommentController extends EntityResource {
       return $pager_links;
     }
     $default_query = UrlHelper::filterQueryParameters($request->query->all(), ['page']);
-    if ($current_page < $pager_total[$element]) {
+    if ($current_page < $pager_total[$element] - 1) {
       $next_url = static::getRequestLink($request, ['page' => $current_page + 1] + $default_query);
       $pager_links = $pager_links->withLink('next', new Link(new CacheableMetadata(), $next_url, ['next']));
       $last_url = static::getRequestLink($request, ['page' => $pager_total[$element]]);
