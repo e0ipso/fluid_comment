@@ -130,7 +130,7 @@ class FluidComment extends React.Component {
                 action={this.commentAction}
               />}
         </article>
-        {children && children.length ? <div class="indented">{children}</div> : null}
+        {children && children.length ? <div className="indented">{children}</div> : null}
       </React.Fragment>
     );
   }
