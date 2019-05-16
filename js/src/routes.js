@@ -1,24 +1,34 @@
 import { getDeepProp } from './functions';
 
-export function getRelUri(alias) {
-  const rels = {
-    'add': 'https://jsonapi.org/profiles/drupal/hypermedia/#add',
-    'update': 'https://jsonapi.org/profiles/drupal/hypermedia/#update',
-    'delete': 'https://jsonapi.org/profiles/drupal/hypermedia/#delete',
-    'collection': 'collection',
-  };
-  return rels[alias];
-}
+const rels = {
+  'https://jsonapi.org/profiles/drupal/hypermedia/#add': {
+    alias: 'add',
+    method: 'POST'
+  },
+  'https://jsonapi.org/profiles/drupal/hypermedia/#update': {
+    alias: 'update',
+    method: 'PATCH'
+  },
+  'https://jsonapi.org/profiles/drupal/hypermedia/#delete': {
+    alias: 'delete',
+    method: 'DELETE'
+  },
+  'collection': {
+    alias: 'collection',
+    method: 'GET'
+  }
+};
 
-export function getMethodsFromRel(rel) {
-  const methods = {};
-  methods[getRelUri('update')] = 'PATCH',
-  methods[getRelUri('delete')] = 'DELETE'
+export const getRelUri = (alias) => (
+  Object.keys(rels).find(uri => rels[uri].alias === alias)
+);
 
-  return Array.isArray(rel)
-    ? rel.map(route => methods[route]).filter(route => route !== undefined)
-    : methods[rel] ? [methods[rel]] : [];
-}
+export const getMetaFromRel = (rel) => (
+  Array.isArray(rel)
+    ? rel.filter(rel => rels[rel] !== undefined).map(rel => rels[rel])
+    : rels[rel] ? [rels[rel]] : []
+);
+
 
 export function objectHasLinkWithRel(obj, key, rel) {
   const rels = getDeepProp(obj, `links.${key}.meta.linkParams.rel`);

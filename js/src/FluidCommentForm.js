@@ -7,16 +7,15 @@ class FluidCommentForm extends React.Component {
 
   constructor(props) {
     super(props);
+    const values = props.values || { subject: '', body: ''};
     this.state = {
-      subjectField: '',
-      bodyField: ''
+      subjectField: values.subject,
+      bodyField: values.body
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   render() {
-    const { isRefreshing } = this.props;
+    const { isRefreshing, handleCancel = null } = this.props;
     const { subjectField, bodyField } = this.state;
 
     return (
@@ -29,6 +28,7 @@ class FluidCommentForm extends React.Component {
               name="subjectField"
               className="form-text"
               value={subjectField}
+              disabled={isRefreshing}
               onChange={this.handleChange}
             />
           </div>
@@ -42,68 +42,44 @@ class FluidCommentForm extends React.Component {
                   className="form-textarea required resize-vertical"
                   data-editor-active-text-format="basic_html"
                   value={bodyField}
+                  disabled={isRefreshing}
                   onChange={this.handleChange}
                 />
             </div>
           </div>
           </div>
           <div className="form-actions">
-            <input
+            <button
               className={`button ${isRefreshing && 'is-disabled'}`}
               type="submit"
-              value="Post Comment"
               disabled={isRefreshing}
-            />
+            >
+              Post Comment
+            </button>
+            {handleCancel &&
+              <button className="button" onClick={handleCancel}>Cancel</button>
+            }
           </div>
         </form>
       </div>
     );
   }
 
-  handleChange(event) {
+  handleChange = (event) => {
     this.setState({[event.target.name]: event.target.value});
-  }
+  };
 
-  handleSubmit(event) {
+  handleSubmit = (event) => {
     event.preventDefault();
-    const requestDocument = {
-      data: {
-        type: this.props.commentType,
-        attributes: {
-          subject: this.state.subjectField,
-          comment_body: {
-            value: this.state.bodyField,
-            format: 'restricted_html',
-          },
-          field_name: 'comment',
-          entity_type: 'node',
-        },
-        relationships: {
-          entity_id: {
-            data: {
-              type: getDeepProp(this.props.commentTarget, 'type'),
-              id: getDeepProp(this.props.commentTarget, 'id'),
-            }
-          }
-        }
-      }
-    };
-    if (this.props.currentUserId) {
-      requestDocument['data']['relationships']['uid'] = {
-        data: {
-          type: 'user--user',
-          id: this.props.currentUserId,
-        }
-      }
+
+    const { subjectField, bodyField } = this.state;
+
+    if (bodyField === '') {
+      console.log('Body field is required');
+      return;
     }
-    const options = {
-      method: 'POST',
-      body: JSON.stringify(requestDocument),
-    };
-    getResponseDocument(this.props.commentsUrl, options).then(doc => {
-      this.props.onSubmit();
-      this.setState({ subjectField: '', bodyField: '' });
-    });
+
+    this.props.handleSubmit({ subjectField, bodyField });
   }
 
 }

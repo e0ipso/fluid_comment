@@ -26,6 +26,10 @@ function getToken() {
  */
 export function getUrl(path = '') { return `${window.location.origin}${path}` };
 
+export function getFormKey(prefix = 'commentForm') {
+  return `${prefix}-${+new Date()}`;
+}
+
 export function getDeepProp(obj, path) {
   return path.split('.').reduce((obj, prop) => {
     return obj && obj.hasOwnProperty(prop) ? obj[prop] : false;
@@ -34,18 +38,64 @@ export function getDeepProp(obj, path) {
 
 export function getResponseDocument(url, options = {}) {
   return getToken().then(token => {
-    options.credentials = 'include';
     const headers = {};
+
     headers['Accept'] = 'application/vnd.api+json';
     if (token || options.method === 'DELETE') {
       headers['Content-Type'] = 'application/vnd.api+json';
       headers['X-CSRF-Token'] = token;
     }
+
     options.headers = headers;
-    return fetch(url, options).then(response => {
-      return response.status !== 204 ? response.json() : null;
-    }).then(doc => {
+    options.credentials = 'include';
+
+    return fetch(url, options)
+      .then(response => (response.status !== 204
+        ? response.json()
+        : null))
+      .then(doc => {
+
+      if (doc.errors) {
+        doc.errors.forEach(error => {
+          const { status, detail } = error;
+          console.log('error', { url, status, detail });
+        });
+      }
+
       return doc;
-    }).catch(console.log);
+    }).catch(e => {
+      console.log('error', { url, e });
+    });
   });
+}
+
+export function formatRequest(values, method, node, field, type) {
+
+  const { subjectField, bodyField } = values;
+
+  const attributes = {
+    subject: subjectField,
+    comment_body: {
+      value: bodyField,
+      format: 'restricted_html',
+    },
+    field_name: field,
+    entity_type: 'node',
+  };
+
+  const relationships = {
+    entity_id: {
+      data: {
+        type: getDeepProp(node, 'type'),
+        id: getDeepProp(node, 'id'),
+      }
+    }
+  };
+
+  const requestDocument = { data: { attributes, relationships, type } };
+
+  return {
+    method,
+    body: JSON.stringify(requestDocument)
+  };
 }

@@ -1,10 +1,11 @@
 'use strict';
 import React from 'react';
-import { getDeepProp, getResponseDocument } from './functions';
+import { getDeepProp, getResponseDocument, formatRequest, getFormKey } from './functions';
 import { getRelUri, objectHasLinkWithRel } from './routes';
-import FluidComment from './FluidComment';
+
+import FluidCommentList from './FluidCommentList';
 import FluidCommentForm from './FluidCommentForm';
-import InlineLoginForm from "./InlineLoginForm";
+import InlineLoginForm from './InlineLoginForm';
 
 class FluidCommentWrapper extends React.Component {
 
@@ -15,6 +16,7 @@ class FluidCommentWrapper extends React.Component {
       comments: [],
       isRefreshing: false,
       threaded: false,
+      formKey: getFormKey()
     };
   }
 
@@ -28,109 +30,76 @@ class FluidCommentWrapper extends React.Component {
   };
 
   render() {
-    const { currentNode, loginUrl, commentType } = this.props;
-    const { comments, loggedIn, isRefreshing, threaded } = this.state;
+    const { currentNode, loginUrl } = this.props;
+    const { comments, loggedIn, isRefreshing, threaded, formKey } = this.state;
     const addLink = getRelUri('add');
     const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);
 
+    const show = currentNode && objectHasLinkWithRel(currentNode, 'comments', getRelUri('collection'));
+
     return (
       <div>
-      {threaded ? this.renderThreaded(comments) : this.renderFlat(comments)}
+      {show &&
+        <FluidCommentList
+          threaded={threaded}
+          comments={comments}
+          isRefreshing={isRefreshing}
+          refresh={this.refreshComments}
+        />
+      }
 
-      {loggedIn === false
-        ? <div>
-            <h2 className="title comment-form__title">Log in to comment</h2>
-            <InlineLoginForm
-              key="loginForm"
-              loginUrl={loginUrl}
-              onLogin={this.onLogin}
-            />
-          </div>
-        : hasLink && <div>
-            <h2 className="title comment-form__title">Add new comment</h2>
-            <FluidCommentForm
-              key="commentForm"
-              commentTarget={currentNode}
-              commentType={commentType}
-              onSubmit={() => this.refreshComments()}
-              isRefreshing={isRefreshing}
-            />
-          </div>
+      {hasLink &&
+        <div>
+          <h2 className="title comment-form__title">Add new comment</h2>
+          <FluidCommentForm
+            key={formKey}
+            handleSubmit={this.addComment}
+            isRefreshing={isRefreshing}
+          />
+        </div>
+      }
+      {loggedIn === false &&
+        <div>
+          <h2 className="title comment-form__title">Log in</h2>
+          <InlineLoginForm
+            key="loginForm"
+            loginUrl={loginUrl}
+            onLogin={this.onLogin}
+          />
+        </div>
       }
       </div>
     );
   }
 
-  renderThreaded(comments) {
-    const { isRefreshing } = this.state;
-    const rendered = [];
-    let stack = [];
-    const destack = (stack, current) => {
-      let item, last = null;
-      while (item = stack.pop()) {
-        if (last !== null) {
-          item.children.push(last);
-        }
-        if (!current || !current.parentId || current.parentId !== item.id) {
-          last = item.render(item.children);
-        }
-        else {
-          stack.push(item);
-          break;
-        }
-      }
-      if (!current || !current.parentId) {
-        rendered.push(last);
-      }
-      return stack;
-    }
-    for (var i = 0; i < comments.length; i++) {
-      const comment = comments[i];
-      const current = {
-        id: comments[i].id,
-        parentId: getDeepProp(comments[i], 'relationships.pid.data.id'),
-        render: (children) => {
-          return (
-              <FluidComment
-                  key={comment.id}
-                  index={i}
-                  comment={comment}
-                  refresh={() => this.refreshComments()}
-                  isRefreshing={isRefreshing}
-              >
-                {children}
-              </FluidComment>
-          );
-        },
-        children: [],
-      };
-      if (i > 0)  {
-        stack = destack(stack, current);
-      }
-      stack.push(current);
-    }
-    destack(stack);
-    return rendered;
-  }
+  addComment = (values) => {
+    const { currentNode: node, commentType: type } = this.props;
+    const commentsUrl = getDeepProp(node, 'links.comments.href');
+    const field = getDeepProp(node, 'links.comments.meta.commentFieldName');
+    const request = formatRequest(values, 'POST', node, type, field);
 
-  renderFlat(comments) {
-    const { isRefreshing } = this.state;
-    return comments.map((comment, index) => (
-      <FluidComment
-          key={comment.id}
-          index={index}
-          comment={comment}
-          refresh={() => this.refreshComments()}
-          isRefreshing={isRefreshing}
-      />
-    ));
-  }
-
-  refreshComments() {
-    if (objectHasLinkWithRel(this.props.currentNode, 'comments', getRelUri('collection'))) {
-      this.getAndAddComments(`${this.props.currentNode.links.comments.href}/?include=uid.user_picture`);
+    if (objectHasLinkWithRel(node, 'comments', getRelUri('add'))) {
+      getResponseDocument(commentsUrl, request).then(doc => {
+        if (!doc.errors) {
+          this.refreshComments();
+          this.resetForm();
+        }
+      });
     }
-  }
+  };
+
+  refreshComments = () => {
+    const { currentNode: node } = this.props;
+    const commentsUrl = getDeepProp(node, 'links.comments.href');
+
+    if (objectHasLinkWithRel(node, 'comments', getRelUri('collection'))) {
+      this.getAndAddComments(`${commentsUrl}/?include=uid.user_picture`);
+    }
+  };
+
+  resetForm = () => {
+    this.setState({ formKey: getFormKey() });
+  };
 
   /**
    * @todo Replace with serializing

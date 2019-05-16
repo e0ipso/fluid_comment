@@ -2,9 +2,10 @@
 
 import React from 'react';
 import FluidCommentContent from './FluidCommentContent';
+import FluidCommentForm from './FluidCommentForm';
 import FluidCommentAction from './FluidCommentAction';
-import { getDeepProp, getResponseDocument } from './functions.js';
-import { getMethodsFromRel } from './routes.js';
+import { getDeepProp, getResponseDocument, getFormKey, formatRequest } from './functions.js';
+import { getMetaFromRel } from './routes.js';
 
 function getSelfTitle(method) {
   const titles = {
@@ -17,6 +18,7 @@ function getSelfTitle(method) {
 
 function getLinkTitles(key) {
   const titles = {
+    'reply': 'Reply',
     'publish': 'Approve',
     'unpublish': 'Unpublish'
   };
@@ -24,11 +26,12 @@ function getLinkTitles(key) {
   return titles[key] ? titles[key] : '';
 }
 
-function processLink({ title, href, method, data = {} }) {
+function processLink({ name, title, href, method, data = {} }) {
   const options = { method };
 
   return {
     className: `comment-${title.toLowerCase()}`,
+    name,
     title,
     options,
     href,
@@ -47,14 +50,16 @@ function processLinks(links) {
     const { rel } = params;
     const data = params.data ? params.data : {};
 
-    const methods = getMethodsFromRel(rel);
+    const meta = getMetaFromRel(rel);
 
-    methods.forEach(method => {
+    meta.forEach(relMeta => {
+      const { alias, method } = relMeta;
+      const name = key === 'self' ? alias : key;
       const title = key === 'self'
         ? getSelfTitle(method)
         : getLinkTitles(key);
 
-      processed.push(processLink({ title, href, method, data }));
+      processed.push(processLink({ name, title, href, method, data }));
     });
   });
 
@@ -65,14 +70,20 @@ class FluidComment extends React.Component {
 
   constructor(props) {
     super(props);
+
     this.state = {
+      formKey: getFormKey(props.comment.id),
       action: null
     }
   }
 
+  resetForm = () => {
+    this.setState({ formKey: getFormKey(this.props.comment.id) });
+  };
+
   render() {
     const { comment, isRefreshing, children } = this.props;
-    const { action } = this.state;
+    const { action, formKey } = this.state;
 
     const subject = getDeepProp(comment, 'attributes.subject');
     const body = getDeepProp(comment, 'attributes.comment_body.processed');
@@ -115,11 +126,17 @@ class FluidComment extends React.Component {
             <p className="comment__permalink">permalink</p>
             <p className="visually-hidden">parent</p>
           </footer>
-          {action !== null
+          {action !== null && action.name !== 'reply'
             ? <FluidCommentAction
+                name={action.name}
                 title={action.title}
-                confirm={this.commentConfirm}
-                cancel={this.commentCancel}
+                subject={subject}
+                body={body}
+                handleEdit={this.saveComment}
+                handleConfirm={this.commentConfirm}
+                handleCancel={this.commentCancel}
+                formKey={`${formKey}-edit`}
+                isRefreshing={isRefreshing}
               />
             : <FluidCommentContent
                 id={comment.id}
@@ -130,10 +147,38 @@ class FluidComment extends React.Component {
                 action={this.commentAction}
               />}
         </article>
+        {(action !== null && action.name === 'reply') &&
+          <FluidCommentForm
+            key={formKey}
+            handleSubmit={this.saveComment}
+            handleCancel={this.commentCancel}
+            isRefreshing={isRefreshing}
+          />
+        }
         {children && children.length ? <div className="indented">{children}</div> : null}
       </React.Fragment>
     );
   }
+
+  formatCommentRequest = (values) => {
+    const { comment } = this.props;
+    const { options } = this.state.action;
+    const node = getDeepProp(comment, 'relationships.entity_id.data');
+    const field = getDeepProp(comment, 'attributes.field_name');
+
+    return formatRequest(values, options.method, node, field, comment.type);
+  };
+
+  saveComment = (values) => {
+    const { refresh } = this.props;
+    const { href } = this.state.action;
+    const request = this.formatCommentRequest(values);
+
+    getResponseDocument(href, request).then(() => {
+      this.setState({ action: null });
+      refresh();
+    });
+  };
 
   commentConfirm = () => {
     const { refresh } = this.props;

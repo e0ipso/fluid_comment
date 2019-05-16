@@ -18,8 +18,9 @@ class FluidCommentWidget extends React.Component {
     componentDidMount() {
         getResponseDocument(entryPointUrl).then(responseDoc => {
             const nodeUrl = getDeepProp(responseDoc, `links.${this.props.hostType}.href`) + `/${this.props.hostId}`;
-            const loggedIn = getDeepProp(responseDoc, 'meta.links.me.href') !== false;
-            this.setState({loggedIn});
+            const userId = getDeepProp(responseDoc, 'meta.links.me.meta.id');
+            const loggedIn = userId !== false;
+            this.setState({ loggedIn, userId });
             getResponseDocument(nodeUrl).then(currentNode => {
                 this.setState({currentNode: getDeepProp(currentNode, 'data')});
             });
@@ -27,15 +28,18 @@ class FluidCommentWidget extends React.Component {
     }
 
     render() {
-        const show = this.state.currentNode && objectHasLinkWithRel(this.state.currentNode, 'comments', getRelUri('collection'));
-        return <div>
-            {show && <FluidCommentWrapper
-                loginUrl={this.state.loggedIn === false ? loginUrl : null}
-                commentType={this.props.commentType}
-                currentNode={this.state.currentNode}
-                hostId={this.props.hostId}
-            />}
-        </div>
+        const { currentNode, loggedIn, userId } = this.state;
+        const { hostId, commentType } = this.props;
+
+        return (currentNode &&
+          <FluidCommentWrapper
+            loginUrl={loggedIn === false ? loginUrl : null}
+            currentUserId={userId}
+            commentType={commentType}
+            currentNode={currentNode}
+            hostId={hostId}
+          />
+        );
     }
 }
 
