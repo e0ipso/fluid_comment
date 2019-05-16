@@ -30,6 +30,7 @@ class FluidCommentWidget extends React.Component {
         const { currentNode, loggedIn } = this.state;
         const { commentType } = this.props;
         const show = currentNode && objectHasLinkWithRel(currentNode, 'comments', getRelUri('collection'));
+
         return (show &&
           <FluidCommentWrapper
             loginUrl={loggedIn === false ? loginUrl : null}
