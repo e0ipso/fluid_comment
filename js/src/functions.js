@@ -69,8 +69,7 @@ export function getResponseDocument(url, options = {}) {
   });
 }
 
-export function formatRequest(values, method, node, field, type) {
-
+export function formatBodyAdd(values, node, field, type) {
   const { subjectField, bodyField } = values;
 
   const attributes = {
@@ -92,10 +91,19 @@ export function formatRequest(values, method, node, field, type) {
     }
   };
 
-  const requestDocument = { data: { attributes, relationships, type } };
+  return JSON.stringify({ data: { attributes, relationships, type } });
+}
 
-  return {
-    method,
-    body: JSON.stringify(requestDocument)
+export function formatBodyUpdate(values, id, type) {
+  const { subjectField, bodyField } = values;
+
+  const attributes = {
+    subject: subjectField,
+    comment_body: {
+      value: bodyField,
+      format: 'restricted_html',
+    },
   };
+
+  return JSON.stringify({ data: { id, attributes, type } });
 }

@@ -1,6 +1,6 @@
 'use strict';
 import React from 'react';
-import { getDeepProp, getResponseDocument, formatRequest, getFormKey } from './functions';
+import { getDeepProp, getResponseDocument, formatBodyAdd, getFormKey } from './functions';
 import { getRelUri, objectHasLinkWithRel } from './routes';
 
 import FluidCommentList from './FluidCommentList';
@@ -76,10 +76,11 @@ class FluidCommentWrapper extends React.Component {
     const { currentNode: node, commentType: type } = this.props;
     const commentsUrl = getDeepProp(node, 'links.comments.href');
     const field = getDeepProp(node, 'links.comments.meta.commentFieldName');
-    const request = formatRequest(values, 'POST', node, type, field);
+    const body = formatBodyAdd(values, node, field, type);
+    const method = 'POST';
 
     if (objectHasLinkWithRel(node, 'comments', getRelUri('add'))) {
-      getResponseDocument(commentsUrl, request).then(doc => {
+      getResponseDocument(commentsUrl, { method, body }).then(doc => {
         if (!doc.errors) {
           this.refreshComments();
           this.resetForm();

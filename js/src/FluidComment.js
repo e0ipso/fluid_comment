@@ -4,7 +4,7 @@ import React from 'react';
 import FluidCommentContent from './FluidCommentContent';
 import FluidCommentForm from './FluidCommentForm';
 import FluidCommentAction from './FluidCommentAction';
-import { getDeepProp, getResponseDocument, getFormKey, formatRequest } from './functions.js';
+import { getDeepProp, getResponseDocument, getFormKey, formatBodyAdd, formatBodyUpdate } from './functions.js';
 import { getMetaFromRel } from './routes.js';
 
 function getSelfTitle(method) {
@@ -163,10 +163,27 @@ class FluidComment extends React.Component {
   formatCommentRequest = (values) => {
     const { comment } = this.props;
     const { options } = this.state.action;
-    const node = getDeepProp(comment, 'relationships.entity_id.data');
-    const field = getDeepProp(comment, 'attributes.field_name');
 
-    return formatRequest(values, options.method, node, field, comment.type);
+    const { id, type } = comment;
+    let body = {};
+
+    switch (options.method) {
+      case 'POST':
+        const node = getDeepProp(comment, 'relationships.entity_id.data');
+        const field = getDeepProp(comment, 'attributes.field_name');
+        body = formatBodyAdd(values, node, field, type);
+        break;
+
+      case 'PATCH':
+        body = formatBodyUpdate(values, id, type);
+        break;
+
+      default:
+        console.error(`Method ${options.method} not handled`);
+        break;
+    }
+
+    return Object.assign(options, { body });
   };
 
   saveComment = (values) => {
@@ -189,7 +206,6 @@ class FluidComment extends React.Component {
     }
 
     getResponseDocument(href, options).then(() => {
-      // console.log(`Called ${link.title} with ${options.method} for ${href}`);
       this.setState({ action: null });
       refresh();
     });
