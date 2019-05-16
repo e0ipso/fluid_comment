@@ -16,28 +16,25 @@ class FluidCommentWidget extends React.Component {
     }
 
     componentDidMount() {
+        const { commentedResourceUrl } = this.props;
         getResponseDocument(entryPointUrl).then(responseDoc => {
-            const nodeUrl = getDeepProp(responseDoc, `links.${this.props.hostType}.href`) + `/${this.props.hostId}`;
-            const userId = getDeepProp(responseDoc, 'meta.links.me.meta.id');
-            const loggedIn = userId !== false;
-            this.setState({ loggedIn, userId });
-            getResponseDocument(nodeUrl).then(currentNode => {
+            const loggedIn = getDeepProp(responseDoc, 'meta.links.me.href') !== false;
+            this.setState({loggedIn});
+            getResponseDocument(commentedResourceUrl).then(currentNode => {
                 this.setState({currentNode: getDeepProp(currentNode, 'data')});
             });
         });
     }
 
     render() {
-        const { currentNode, loggedIn, userId } = this.state;
-        const { hostId, commentType } = this.props;
-
-        return (currentNode &&
+        const { currentNode, loggedIn } = this.state;
+        const { commentType } = this.props;
+        const show = currentNode && objectHasLinkWithRel(currentNode, 'comments', getRelUri('collection'));
+        return (show &&
           <FluidCommentWrapper
             loginUrl={loggedIn === false ? loginUrl : null}
-            currentUserId={userId}
             commentType={commentType}
             currentNode={currentNode}
-            hostId={hostId}
           />
         );
     }

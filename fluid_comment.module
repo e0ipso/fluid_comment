@@ -21,8 +21,7 @@ function fluid_comment_theme($existing, $type, $theme, $path) {
   return [
     'fluid_comment_formatter' => [
       'variables' => [
-        'comment_target_type' => NULL,
-        'comment_target_id' => NULL,
+        'commented_resource_url' => NULL,
         'comment_type' => NULL,
         'comment_display_mode' => NULL,
       ],
