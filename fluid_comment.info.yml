@@ -7,3 +7,4 @@ dependencies:
   - drupal:comment
   - drupal:jsonapi
   - jsonapi_comment:jsonapi_comment
+  - jsonapi_hypermedia:jsonapi_hypermedia
