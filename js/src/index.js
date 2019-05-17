@@ -3,11 +3,6 @@ import { render } from 'react-dom';
 import FluidCommentWrapper from './FluidCommentWrapper';
 import { getResponseDocument, getDeepProp } from './functions';
 
-export FluidComment from './FluidComment';
-export FluidCommentForm from './FluidCommentForm';
-export FluidCommentWrapper from './FluidCommentWrapper';
-export { getResponseDocument, getDeepProp, getUrl } from './functions';
-
 document.addEventListener("DOMContentLoaded", function() {
     const domContainer = document.querySelector('#fluid-comment-root');
     if (domContainer) {

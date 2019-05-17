@@ -1,16 +1,4 @@
 # Custom module library for general purposes.
 fluid_comment:
   js:
-    js/umd/fluid-comment.js: {}
-
-# Third-party library (CDN).
-reactjs:
-  js:
-    https://unpkg.com/react@16/umd/react.development.js: {type: external }
-    https://unpkg.com/react-dom@16/umd/react-dom.development.js: {type: external }
-  #remote: https://reactjs.org
-  #version: 2.0.5
-  #license:
-  #  name: MIT
-  #  url: https://github.com/vuejs/vue/blob/dev/LICENSE
-  #  gpl-compatible: true
+    js/dist/fluid-comment.js: {}
