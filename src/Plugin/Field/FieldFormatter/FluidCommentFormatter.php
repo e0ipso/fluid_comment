@@ -67,6 +67,7 @@ class FluidCommentFormatter extends CommentDefaultFormatter {
       $build['#theme'] = 'fluid_comment_formatter';
       $build['#comment_type'] = $comment_type_name;
       $build['#commented_resource_url'] = Url::fromRoute("jsonapi.$host_type_name.individual", ['entity' => $host_id])->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+      $build['#filter_default_format'] = filter_default_format($this->currentUser);
       $build['#attached'] = [
         'library' => [
           'fluid_comment/reactjs',

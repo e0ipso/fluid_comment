@@ -73,13 +73,14 @@ class FluidCommentForm extends React.Component {
     event.preventDefault();
 
     const { subjectField, bodyField } = this.state;
+    const { filterDefaultFormat } = this.props;
 
     if (bodyField === '') {
       console.log('Body field is required');
       return;
     }
 
-    this.props.handleSubmit({ subjectField, bodyField });
+    this.props.handleSubmit({ subjectField, bodyField, bodyFormat: filterDefaultFormat });
   }
 
 }

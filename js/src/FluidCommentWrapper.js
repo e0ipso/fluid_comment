@@ -23,7 +23,7 @@ class FluidCommentWrapper extends React.Component {
   }
 
   render() {
-    const { currentNode } = this.props;
+    const { currentNode, filterDefaultFormat } = this.props;
     const { comments, isRefreshing, threaded, formKey } = this.state;
     const addLink = getRelUri('add');
     const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);
@@ -47,6 +47,7 @@ class FluidCommentWrapper extends React.Component {
           <FluidCommentForm
             key={formKey}
             handleSubmit={this.addComment}
+            filterDefaultFormat={filterDefaultFormat}
             isRefreshing={isRefreshing}
           />
         </div>

@@ -70,13 +70,13 @@ export function getResponseDocument(url, options = {}) {
 }
 
 export function formatBodyAdd(values, node, field, type) {
-  const { subjectField, bodyField } = values;
+  const { subjectField, bodyField, bodyFormat } = values;
 
   const attributes = {
     subject: subjectField,
     comment_body: {
       value: bodyField,
-      format: 'restricted_html',
+      format: bodyFormat,
     },
     field_name: field,
     entity_type: 'node',
