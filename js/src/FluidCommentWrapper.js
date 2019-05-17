@@ -5,14 +5,12 @@ import { getRelUri, objectHasLinkWithRel } from './routes';
 
 import FluidCommentList from './FluidCommentList';
 import FluidCommentForm from './FluidCommentForm';
-import InlineLoginForm from './InlineLoginForm';
 
 class FluidCommentWrapper extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      loggedIn: this.props.loginUrl ? false : null,
       comments: [],
       isRefreshing: false,
       threaded: false,
@@ -24,14 +22,9 @@ class FluidCommentWrapper extends React.Component {
     this.refreshComments();
   }
 
-  onLogin = (success) => {
-    this.setState({loggedIn: !!success});
-    this.refreshComments();
-  };
-
   render() {
-    const { currentNode, loginUrl } = this.props;
-    const { comments, loggedIn, isRefreshing, threaded, formKey } = this.state;
+    const { currentNode } = this.props;
+    const { comments, isRefreshing, threaded, formKey } = this.state;
     const addLink = getRelUri('add');
     const hasLink = objectHasLinkWithRel(currentNode, 'comments', addLink);
 
@@ -55,16 +48,6 @@ class FluidCommentWrapper extends React.Component {
             key={formKey}
             handleSubmit={this.addComment}
             isRefreshing={isRefreshing}
-          />
-        </div>
-      }
-      {loggedIn === false &&
-        <div>
-          <h2 className="title comment-form__title">Log in</h2>
-          <InlineLoginForm
-            key="loginForm"
-            loginUrl={loginUrl}
-            onLogin={this.onLogin}
           />
         </div>
       }
