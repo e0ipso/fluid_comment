@@ -27,7 +27,7 @@ class FluidCommentWidget extends React.Component {
         const { commentType } = this.props;
 
         return (
-          <FluidCommentWrapper
+          currentNode && <FluidCommentWrapper
             commentType={commentType}
             currentNode={currentNode}
           />
