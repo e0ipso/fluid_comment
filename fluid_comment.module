@@ -24,6 +24,7 @@ function fluid_comment_theme($existing, $type, $theme, $path) {
         'commented_resource_url' => NULL,
         'comment_type' => NULL,
         'comment_display_mode' => NULL,
+        'filter_default_format' => NULL,
       ],
     ],
   ];
