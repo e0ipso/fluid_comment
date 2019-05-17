@@ -6,4 +6,5 @@ core: 8.x
 dependencies:
   - drupal:comment
   - drupal:jsonapi
-  - drupal:jsonapi_hypermedia
+  - jsonapi_comment:jsonapi_comment
+  - jsonapi_hypermedia:jsonapi_hypermedia
