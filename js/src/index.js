@@ -12,9 +12,8 @@ export { getResponseDocument, getDeepProp, getUrl } from './functions';
 document.addEventListener("DOMContentLoaded", function() {
   const domContainer = document.querySelector('#fluid-comment-root');
   if (domContainer) {
-    const hostType = domContainer.getAttribute('data-jsonapi-comment-target-type');
-    const hostId = domContainer.getAttribute('data-jsonapi-comment-target-id');
+    const commentedResourceUrl = domContainer.getAttribute('data-fluid-comment-commented-resource-url');
     const commentType = domContainer.getAttribute('data-jsonapi-comment-type');
-    render(<FluidCommentWidget commentType={commentType} hostType={hostType} hostId={hostId} />, domContainer);
+    render(<FluidCommentWidget commentType={commentType} commentedResourceUrl={commentedResourceUrl} />, domContainer);
   }
 });

@@ -3,8 +3,10 @@
 namespace Drupal\fluid_comment\Plugin\Field\FieldFormatter;
 
 use Drupal\comment\Plugin\Field\FieldFormatter\CommentDefaultFormatter;
+use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Url;
 use Drupal\editor\Plugin\EditorManager;
 use Drupal\jsonapi\ResourceType\ResourceTypeRepositoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -32,17 +34,11 @@ class FluidCommentFormatter extends CommentDefaultFormatter {
   protected $resourceTypeRepository;
 
   /**
-   * @var \Drupal\editor\Plugin\EditorManager
-   */
-  protected $editorManager;
-
-  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     $formatter = parent::create($container, $configuration, $plugin_id, $plugin_definition);
     $formatter->setResourceTypeRepository($container->get('jsonapi.resource_type.repository'));
-    $formatter->setEditorManager($container->get('plugin.manager.editor'));
     return $formatter;
   }
 
@@ -57,13 +53,6 @@ class FluidCommentFormatter extends CommentDefaultFormatter {
   }
 
   /**
-   * @param \Drupal\editor\Plugin\EditorManager $editor_manager
-   */
-  protected function setEditorManager(EditorManager $editor_manager) {
-    $this->editorManager = $editor_manager;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
@@ -75,23 +64,17 @@ class FluidCommentFormatter extends CommentDefaultFormatter {
       $host_type_name = $host_type->getTypeName();
       $host_id = $host_entity->uuid();
       $comment_type_name = $this->resourceTypeRepository->get('comment', $items->getFieldDefinition()->getItemDefinition()->getSetting('comment_type'))->getTypeName();
-      $elements[0]['comments'] = [[
-        '#theme' => 'fluid_comment_formatter',
-        '#comment_target_type' => $host_type_name,
-        '#comment_target_id' => $host_id,
-        '#comment_type' => $comment_type_name,
-        '#attached' => [
-          'library' => [
-            'fluid_comment/reactjs',
-            'fluid_comment/fluid_comment',
-          ],
+      $build['#theme'] = 'fluid_comment_formatter';
+      $build['#comment_type'] = $comment_type_name;
+      $build['#commented_resource_url'] = Url::fromRoute("jsonapi.$host_type_name.individual", ['entity' => $host_id])->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+      $build['#attached'] = [
+        'library' => [
+          'fluid_comment/reactjs',
+          'fluid_comment/fluid_comment',
         ],
-      ]];
+      ];
+      $elements[0]['comments'] = [$build];
       $elements[0]['comment_form'] = [];
-      // Attach Text Editor module's (this module) library.
-      $elements[0]['comments'][0]['#attached']['library'][] = 'editor/drupal.editor';
-      // Attach attachments for all available editors.
-      $elements[0]['comments'][0]['#attached'] = BubbleableMetadata::mergeAttachments($elements[0]['comments'][0]['#attached'], $this->editorManager->getAttachments(array_keys(filter_formats())));
     }
     return $elements;
   }
