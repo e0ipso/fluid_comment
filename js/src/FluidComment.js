@@ -4,6 +4,8 @@ import React from 'react';
 import FluidCommentContent from './FluidCommentContent';
 import FluidCommentForm from './FluidCommentForm';
 import FluidCommentAction from './FluidCommentAction';
+import FluidCommentAuthor from './FluidCommentAuthor';
+
 import { getDeepProp, getResponseDocument, getFormKey, formatBodyAdd, formatBodyUpdate } from './functions.js';
 import { getMetaFromRel } from './routes.js';
 
@@ -92,7 +94,8 @@ class FluidComment extends React.Component {
 
     const author = {
       name: getDeepProp(comment, 'user.attributes.name'),
-      image: getDeepProp(comment, 'user.picture.attributes.uri.url')
+      image: getDeepProp(comment, 'user.picture.attributes.uri.url'),
+      url: getDeepProp(comment, 'user.url')
     };
 
     const classes = {
@@ -120,8 +123,7 @@ class FluidComment extends React.Component {
         <article role="article" className={classes.article.join(' ')}>
           <span className="hidden" data-comment-timestamp="{{ new_indicator_timestamp }}"></span>
           <footer className="comment__meta">
-            {author.image && <img src={author.image} alt={author.name} />}
-            <p className="comment__author">{author.name}</p>
+            <FluidCommentAuthor author={author} />
             <p className="comment__time">created</p>
             <p className="comment__permalink">permalink</p>
             <p className="visually-hidden">parent</p>

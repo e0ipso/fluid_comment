@@ -31,7 +31,7 @@ class FluidCommentWrapper extends React.Component {
     const show = currentNode && objectHasLinkWithRel(currentNode, 'comments', getRelUri('collection'));
 
     return (
-      <div>
+      <>
       {show &&
         <FluidCommentList
           threaded={threaded}
@@ -52,7 +52,7 @@ class FluidCommentWrapper extends React.Component {
           />
         </div>
       }
-      </div>
+      </>
     );
   }
 
@@ -98,11 +98,17 @@ class FluidCommentWrapper extends React.Component {
       if (users.length > 0) {
         let user = users[0];
         const pic = getDeepProp(user, 'relationships.user_picture.data');
+        const uid = getDeepProp(user, 'attributes.drupal_internal__uid');
+
         if (pic) {
           const pictures = included.filter(item => item.id === pic.id);
           if (pictures.length > 0) {
             user = Object.assign(user, { picture: pictures[0] });
           }
+        }
+
+        if (uid) {
+          user = Object.assign(user, { url: `/user/${uid}`});
         }
 
         return Object.assign(comment, { user });
