@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import ScrollableAnchor from 'react-scrollable-anchor';
 
 import FluidCommentContent from './FluidCommentContent';
 import FluidCommentForm from './FluidCommentForm';
@@ -127,37 +128,39 @@ class FluidComment extends React.Component {
     const permaLink = `comment-${cid}`;
 
     return (
-      <React.Fragment>
-        <article role="article" className={classes.article.join(' ')} id={permaLink}>
-          <span className="hidden" data-comment-timestamp={format(new Date(changed), 'X')}></span>
-          <footer className="comment__meta">
-            <FluidCommentAuthor author={author} />
-            <p className="comment__time">{format(new Date(created), dateFormat)}</p>
-            <p className="comment__permalink"><a href={`#${permaLink}`}>Permalink</a></p>
-            <p className="visually-hidden">parent</p>
-          </footer>
-          {action !== null && action.name !== 'reply'
-            ? <FluidCommentAction
-                name={action.name}
-                title={action.title}
-                subject={subject}
-                body={body}
-                handleEdit={this.saveComment}
-                handleConfirm={this.commentConfirm}
-                handleCancel={this.commentCancel}
-                formKey={`${formKey}-edit`}
-                isRefreshing={isRefreshing}
-              />
-            : <FluidCommentContent
-                id={comment.id}
-                subject={subject}
-                body={body}
-                classes={classes}
-                links={links}
-                permaLink={permaLink}
-                action={this.commentAction}
-              />}
-        </article>
+      <>
+        <ScrollableAnchor id={permaLink}>
+          <article role="article" className={classes.article.join(' ')}>
+            <span className="hidden" data-comment-timestamp={format(new Date(changed), 'X')}></span>
+            <footer className="comment__meta">
+              <FluidCommentAuthor author={author} />
+              <p className="comment__time">{format(new Date(created), dateFormat)}</p>
+              <p className="comment__permalink"><a href={`#${permaLink}`}>Permalink</a></p>
+              <p className="visually-hidden">parent</p>
+            </footer>
+            {action !== null && action.name !== 'reply'
+              ? <FluidCommentAction
+                  name={action.name}
+                  title={action.title}
+                  subject={subject}
+                  body={body}
+                  handleEdit={this.saveComment}
+                  handleConfirm={this.commentConfirm}
+                  handleCancel={this.commentCancel}
+                  formKey={`${formKey}-edit`}
+                  isRefreshing={isRefreshing}
+                />
+              : <FluidCommentContent
+                  id={comment.id}
+                  subject={subject}
+                  body={body}
+                  classes={classes}
+                  links={links}
+                  permaLink={permaLink}
+                  action={this.commentAction}
+                />}
+          </article>
+        </ScrollableAnchor>
         {(action !== null && action.name === 'reply') &&
           <FluidCommentForm
             key={formKey}
@@ -167,7 +170,7 @@ class FluidComment extends React.Component {
           />
         }
         {children && children.length ? <div className="indented">{children}</div> : null}
-      </React.Fragment>
+      </>
     );
   }
 
