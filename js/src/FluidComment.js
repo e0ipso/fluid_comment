@@ -1,6 +1,8 @@
 'use strict';
 
 import React from 'react';
+import { format } from 'date-fns';
+
 import FluidCommentContent from './FluidCommentContent';
 import FluidCommentForm from './FluidCommentForm';
 import FluidCommentAction from './FluidCommentAction';
@@ -90,6 +92,8 @@ class FluidComment extends React.Component {
     const subject = getDeepProp(comment, 'attributes.subject');
     const body = getDeepProp(comment, 'attributes.comment_body.processed');
     const published = getDeepProp(comment, 'attributes.status');
+    const created = getDeepProp(comment, 'attributes.created');
+    const changed = getDeepProp(comment, 'attributes.changed');
     const links = processLinks(comment.links);
 
     const author = {
@@ -118,13 +122,15 @@ class FluidComment extends React.Component {
       ]
     };
 
+    const dateFormat = 'ddd, MM/DD/YYYY';
+
     return (
       <React.Fragment>
         <article role="article" className={classes.article.join(' ')}>
-          <span className="hidden" data-comment-timestamp="{{ new_indicator_timestamp }}"></span>
+          <span className="hidden" data-comment-timestamp={format(new Date(changed), 'X')}></span>
           <footer className="comment__meta">
             <FluidCommentAuthor author={author} />
-            <p className="comment__time">created</p>
+            <p className="comment__time">{format(new Date(created), dateFormat)}</p>
             <p className="comment__permalink">permalink</p>
             <p className="visually-hidden">parent</p>
           </footer>
