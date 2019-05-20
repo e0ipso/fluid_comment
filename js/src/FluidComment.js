@@ -89,6 +89,7 @@ class FluidComment extends React.Component {
     const { comment, isRefreshing, children } = this.props;
     const { action, formKey } = this.state;
 
+    const cid = getDeepProp(comment, 'attributes.drupal_internal__cid');
     const subject = getDeepProp(comment, 'attributes.subject');
     const body = getDeepProp(comment, 'attributes.comment_body.processed');
     const published = getDeepProp(comment, 'attributes.status');
@@ -123,15 +124,16 @@ class FluidComment extends React.Component {
     };
 
     const dateFormat = 'ddd, MM/DD/YYYY';
+    const permaLink = `comment-${cid}`;
 
     return (
       <React.Fragment>
-        <article role="article" className={classes.article.join(' ')}>
+        <article role="article" className={classes.article.join(' ')} id={permaLink}>
           <span className="hidden" data-comment-timestamp={format(new Date(changed), 'X')}></span>
           <footer className="comment__meta">
             <FluidCommentAuthor author={author} />
             <p className="comment__time">{format(new Date(created), dateFormat)}</p>
-            <p className="comment__permalink">permalink</p>
+            <p className="comment__permalink"><a href={`#${permaLink}`}>Permalink</a></p>
             <p className="visually-hidden">parent</p>
           </footer>
           {action !== null && action.name !== 'reply'
@@ -152,6 +154,7 @@ class FluidComment extends React.Component {
                 body={body}
                 classes={classes}
                 links={links}
+                permaLink={permaLink}
                 action={this.commentAction}
               />}
         </article>
