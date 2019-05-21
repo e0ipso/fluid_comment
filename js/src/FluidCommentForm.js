@@ -22,7 +22,7 @@ class FluidCommentForm extends React.Component {
       <div>
         <form className="comment-comment-form comment-form" onSubmit={this.handleSubmit}>
           <div className="form-item">
-            <label for="subjectField">Subject</label>
+            <label htmlFor="subjectField">Subject</label>
             <input
               type="text"
               name="subjectField"
@@ -34,7 +34,7 @@ class FluidCommentForm extends React.Component {
           </div>
           <div className="text-format-wrapper form-item">
             <div className="form-type-textarea form-item">
-              <label for="bodyField" className="form-required">Body</label>
+              <label htmlFor="bodyField" className="form-required">Body</label>
               <div className="form-textarea-wrapper">
                 <textarea
                   type="text"
