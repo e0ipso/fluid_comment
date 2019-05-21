@@ -2,7 +2,7 @@ import React from 'react';
 import { getDeepProp } from './functions';
 import FluidComment from './FluidComment';
 
-function renderThreaded(comments, refresh, isRefreshing) {
+function renderThreaded(comments, refresh) {
 
   const rendered = [];
   let stack = [];
@@ -37,7 +37,6 @@ function renderThreaded(comments, refresh, isRefreshing) {
             index={i}
             comment={comment}
             refresh={refresh}
-            isRefreshing={isRefreshing}
           >
             {children}
           </FluidComment>
@@ -54,7 +53,7 @@ function renderThreaded(comments, refresh, isRefreshing) {
   return rendered;
 }
 
-function renderFlat(comments, refresh, isRefreshing) {
+function renderFlat(comments, refresh) {
 
   return comments.map((comment, index) => (
     <FluidComment
@@ -62,15 +61,14 @@ function renderFlat(comments, refresh, isRefreshing) {
       index={index}
       comment={comment}
       refresh={refresh}
-      isRefreshing={isRefreshing}
     />
   ));
 }
 
-const FluidCommentList = ({ threaded, comments, refresh, isRefreshing }) => (
+const FluidCommentList = ({ threaded, comments, refresh }) => (
   threaded
-    ? renderThreaded(comments, refresh, isRefreshing)
-    : renderFlat(comments, refresh, isRefreshing)
+    ? renderThreaded(comments, refresh)
+    : renderFlat(comments, refresh)
 );
 
 export default FluidCommentList;

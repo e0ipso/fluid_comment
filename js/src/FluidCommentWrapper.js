@@ -5,6 +5,7 @@ import { getRelUri, objectHasLinkWithRel } from './routes';
 
 import FluidCommentList from './FluidCommentList';
 import FluidCommentForm from './FluidCommentForm';
+import FluidCommentContext from './FluidCommentContext';
 
 class FluidCommentWrapper extends React.Component {
 
@@ -31,12 +32,11 @@ class FluidCommentWrapper extends React.Component {
     const show = currentNode && objectHasLinkWithRel(currentNode, 'comments', getRelUri('collection'));
 
     return (
-      <>
+      <FluidCommentContext.Provider value={{ isRefreshing, filterDefaultFormat }}>
       {show &&
         <FluidCommentList
           threaded={threaded}
           comments={comments}
-          isRefreshing={isRefreshing}
           refresh={this.refreshComments}
         />
       }
@@ -47,12 +47,10 @@ class FluidCommentWrapper extends React.Component {
           <FluidCommentForm
             key={formKey}
             handleSubmit={this.addComment}
-            filterDefaultFormat={filterDefaultFormat}
-            isRefreshing={isRefreshing}
           />
         </div>
       }
-      </>
+      </FluidCommentContext.Provider>
     );
   }
 

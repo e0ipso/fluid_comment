@@ -13,8 +13,8 @@ const FluidCommentContent = ({ id, subject, body, classes, links, permaLink, act
       {links.map(link => (
         <li key={`${id}-${link.className}`} className={link.className}>
           <FluidCommentLink
-            link={link}
-            handleClick={(e) => action(e, link)}
+            text={link.title}
+            handler={() => action(link)}
           />
         </li>
       ))}

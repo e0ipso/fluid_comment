@@ -87,7 +87,7 @@ class FluidComment extends React.Component {
   };
 
   render() {
-    const { comment, isRefreshing, children } = this.props;
+    const { comment, children } = this.props;
     const { action, formKey } = this.state;
 
     const cid = getDeepProp(comment, 'attributes.drupal_internal__cid');
@@ -148,7 +148,6 @@ class FluidComment extends React.Component {
                   handleConfirm={this.commentConfirm}
                   handleCancel={this.commentCancel}
                   formKey={`${formKey}-edit`}
-                  isRefreshing={isRefreshing}
                 />
               : <FluidCommentContent
                   id={comment.id}
@@ -166,7 +165,6 @@ class FluidComment extends React.Component {
             key={formKey}
             handleSubmit={this.saveComment}
             handleCancel={this.commentCancel}
-            isRefreshing={isRefreshing}
           />
         }
         {children && children.length ? <div className="indented">{children}</div> : null}
@@ -229,14 +227,7 @@ class FluidComment extends React.Component {
     this.setState({ action: null })
   };
 
-  commentAction = (event, link) => {
-    const { isRefreshing } = this.props;
-
-    event.preventDefault();
-
-    if (isRefreshing) {
-      return;
-    }
+  commentAction = (link) => {
 
     // Copy link to avoid affecting it when resetting state.
     this.setState({ action: Object.assign({}, link) });

@@ -70,12 +70,12 @@ export function getResponseDocument(url, options = {}) {
 }
 
 export function formatBodyAdd(values, node, field, type) {
-  const { subjectField, bodyField, bodyFormat } = values;
+  const { subject, body, bodyFormat } = values;
 
   const attributes = {
-    subject: subjectField,
+    subject: subject,
     comment_body: {
-      value: bodyField,
+      value: body,
       format: bodyFormat,
     },
     field_name: field,
@@ -95,12 +95,12 @@ export function formatBodyAdd(values, node, field, type) {
 }
 
 export function formatBodyUpdate(values, id, type) {
-  const { subjectField, bodyField } = values;
+  const { subject, body } = values;
 
   const attributes = {
-    subject: subjectField,
+    subject: subject,
     comment_body: {
-      value: bodyField,
+      value: body,
       format: 'restricted_html',
     },
   };

@@ -1,9 +1,23 @@
-'use strict';
+import React, { useContext } from 'react';
 
-import React from 'react';
+import FluidCommentContext from './FluidCommentContext';
 
-const FluidCommentLink = ({ link, handleClick }) => (
-  <a href="#" onClick={handleClick}>{link.title}</a>
-);
+const FluidCommentLink = ({ text, handler }) => {
+  const { isRefreshing } = useContext(FluidCommentContext);
+  const handleClick = (event, handler) => {
+
+    event.preventDefault();
+
+    if (isRefreshing) {
+      return;
+    }
+
+    handler();
+  };
+
+  return (
+    <a href="#" onClick={(e) => handleClick(e, handler)}>{text}</a>
+  );
+};
 
 export default FluidCommentLink;

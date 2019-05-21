@@ -1,88 +1,75 @@
-'use strict';
+import React, { useState, useContext } from 'react';
 
-import React from 'react';
-import { getDeepProp, getResponseDocument } from "./functions";
+import FluidCommentContext from './FluidCommentContext';
+import FluidCommentButton from './FluidCommentButton';
 
-class FluidCommentForm extends React.Component {
+const FluidCommentForm = ({ handleSubmit, handleCancel = null, defaultValues = {} }) => {
+  const { isRefreshing, filterDefaultFormat } = useContext(FluidCommentContext);
+  const { subject = '', body = ''} = defaultValues;
 
-  constructor(props) {
-    super(props);
-    const values = props.values || { subject: '', body: ''};
-    this.state = {
-      subjectField: values.subject,
-      bodyField: values.body
-    };
-  }
+  const [values, setValues] = useState({ subject, body });
 
-  render() {
-    const { isRefreshing, handleCancel = null } = this.props;
-    const { subjectField, bodyField } = this.state;
+  const handleChange = (event) => {
+    event.persist();
 
-    return (
-      <div>
-        <form className="comment-comment-form comment-form" onSubmit={this.handleSubmit}>
-          <div className="form-item">
-            <label htmlFor="subjectField">Subject</label>
-            <input
-              type="text"
-              name="subjectField"
-              className="form-text"
-              value={subjectField}
-              disabled={isRefreshing}
-              onChange={this.handleChange}
-            />
-          </div>
-          <div className="text-format-wrapper form-item">
-            <div className="form-type-textarea form-item">
-              <label htmlFor="bodyField" className="form-required">Body</label>
-              <div className="form-textarea-wrapper">
-                <textarea
-                  type="text"
-                  name="bodyField"
-                  className="form-textarea required resize-vertical"
-                  data-editor-active-text-format="basic_html"
-                  value={bodyField}
-                  disabled={isRefreshing}
-                  onChange={this.handleChange}
-                />
-            </div>
-          </div>
-          </div>
-          <div className="form-actions">
-            <button
-              className={`button ${isRefreshing && 'is-disabled'}`}
-              type="submit"
-              disabled={isRefreshing}
-            >
-              Post Comment
-            </button>
-            {handleCancel &&
-              <button className="button" onClick={handleCancel}>Cancel</button>
-            }
-          </div>
-        </form>
-      </div>
-    );
-  }
-
-  handleChange = (event) => {
-    this.setState({[event.target.name]: event.target.value});
+    const { name, value } = event.target;
+    setValues(values => ({ ...values, [name]: value}));
   };
 
-  handleSubmit = (event) => {
+  const formSubmit = (event) => {
     event.preventDefault();
 
-    const { subjectField, bodyField } = this.state;
-    const { filterDefaultFormat } = this.props;
+    const { subject, body } = values;
 
-    if (bodyField === '') {
+    if (body === '') {
       console.log('Body field is required');
       return;
     }
 
-    this.props.handleSubmit({ subjectField, bodyField, bodyFormat: filterDefaultFormat });
-  }
+    handleSubmit({ subject, body, bodyFormat: filterDefaultFormat });
+  };
 
-}
+  return (
+    <form
+      className="comment-comment-form comment-form"
+      onSubmit={formSubmit}
+    >
+      <div className="form-item">
+        <label htmlFor="subject">Subject</label>
+        <input
+          type="text"
+          name="subject"
+          className="form-text"
+          value={values.subject}
+          disabled={isRefreshing}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="text-format-wrapper form-item">
+        <div className="form-type-textarea form-item">
+          <label htmlFor="body"
+                 className="form-required">Body</label>
+          <div className="form-textarea-wrapper">
+          <textarea
+            type="text"
+            name="body"
+            className="form-textarea required resize-vertical"
+            data-editor-active-text-format="basic_html"
+            value={values.body}
+            disabled={isRefreshing}
+            onChange={handleChange}
+          />
+          </div>
+        </div>
+      </div>
+      <div className="form-actions">
+        <FluidCommentButton text={'Post Comment'} type="submit" />
+        {handleCancel &&
+          <FluidCommentButton text={'Cancel'} handler={handleCancel} />
+        }
+      </div>
+    </form>
+  );
+};
 
 export default FluidCommentForm;
