@@ -4,6 +4,7 @@ namespace Drupal\fluid_comment\Plugin\Field\FieldFormatter;
 
 use Drupal\comment\Plugin\Field\FieldFormatter\CommentDefaultFormatter;
 use Drupal\Core\Cache\CacheableDependencyInterface;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Url;
@@ -66,13 +67,15 @@ class FluidCommentFormatter extends CommentDefaultFormatter {
       $comment_type_name = $this->resourceTypeRepository->get('comment', $items->getFieldDefinition()->getItemDefinition()->getSetting('comment_type'))->getTypeName();
       $build['#theme'] = 'fluid_comment_formatter';
       $build['#comment_type'] = $comment_type_name;
-      $build['#commented_resource_url'] = Url::fromRoute("jsonapi.$host_type_name.individual", ['entity' => $host_id])->setAbsolute()->toString(TRUE)->getGeneratedUrl();
+      $resource_url = Url::fromRoute("jsonapi.$host_type_name.individual", ['entity' => $host_id])->setAbsolute()->toString(TRUE);
+      $build['#commented_resource_url'] = $resource_url->getGeneratedUrl();
       $build['#filter_default_format'] = filter_default_format($this->currentUser);
       $build['#attached'] = [
         'library' => [
           'fluid_comment/fluid_comment',
         ],
       ];
+      CacheableMetadata::createFromObject($resource_url)->applyTo($build);
       $elements[0]['comments'] = [$build];
       $elements[0]['comment_form'] = [];
     }
